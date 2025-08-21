@@ -11,4 +11,4 @@ const loginValidator = (req: Request, res: Response, next: NextFunction) => {
     next()
 }
 
-export default loginValidator
+export { loginValidator }
