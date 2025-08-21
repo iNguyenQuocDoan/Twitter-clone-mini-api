@@ -1,32 +1,35 @@
 import { Request, Response } from 'express'
 import User from '~/model/schemas/User.shema'
 import databaseService from '~/services/database.services'
+import usersService from '~/services/users.services'
 
-const loginController = (req: Request, res: Response) => {
+const loginController = async (req: Request, res: Response) => {
     const { email, password } = req.body
-    if (email === "doannguyen@gmail.com" && password === '123') {
+    try {
+        const result = await usersService.login({ email, password });
+        return res.json(result);
+    } catch (error) {
+        return res.status(400).json({
+            error: 'login failed'
+        });
+    }
+}
+
+const registerController = async (req: Request, res: Response) => {
+    const { email, password } = req.body
+
+    try {
+        await usersService.register({ email, password });
         return res.json({
-            message: "login success"
+            message: 'register success'
+        })
+    } catch (error) {
+        return res.json({
+            message: 'register failed'
         })
     }
-    return res.status(400).json({
-        error: 'login failed'
-    })
-
 }
 
-const registerController = (req: Request, res: Response) => {
-    const { email, password } = req.body
 
-    databaseService.users.insertOne(new User({
-        email,
-        password
-    }))
-
-    return res.status(400).json({
-        error: 'register failed'
-    })
-
-}
 
 export { loginController, registerController }
