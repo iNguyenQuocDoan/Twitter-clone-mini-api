@@ -12,4 +12,3 @@ export const signToken = ({ payload, privateKey = process.env.JWT_SECRET as stri
     })
 }
 
-signToken({ payload: {}, options: { algorithm: 'HS256' } })

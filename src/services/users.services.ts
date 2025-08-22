@@ -4,6 +4,7 @@ import { RegisterRequestBody } from '~/model/requests/Users.requests'
 import { hashPassword } from '~/utils/crypto'
 import { signToken } from '~/utils/jwt'
 import { TokenType } from '~/constants/enum'
+import { sign } from 'jsonwebtoken'
 class UsersService {
     // khai báo biến ở đây để sử dụng access token
     private signAccessToken(user_id: string) {
@@ -13,10 +14,12 @@ class UsersService {
                 token_type: TokenType.AccessToken
             },
             options: {
-                algorithm: 'HS256'
+                algorithm: 'HS256',
+                expiresIn: process.env.ACCESS_TOKEN_EXPIRES_IN as any
             }
         })
     }
+
     // khai bao them refresh token
     private signRefreshToken(user_id: string) {
         return signToken({
@@ -25,7 +28,8 @@ class UsersService {
                 token_type: TokenType.RefreshToken
             },
             options: {
-                algorithm: 'HS256'
+                algorithm: 'HS256',
+                expiresIn: process.env.REFRESH_TOKEN_EXPIRES_IN as any
             }
         })
     }
@@ -62,9 +66,6 @@ class UsersService {
         const access_token = await this.signAccessToken(user_id)
         const refresh_token = await this.signRefreshToken(user_id)
 
-
-        console.log('Access Token:', access_token)
-        console.log('Refresh Token:', refresh_token)
         return {
             user_id,
             access_token,
