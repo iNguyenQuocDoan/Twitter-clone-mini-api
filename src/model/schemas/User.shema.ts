@@ -2,12 +2,9 @@
 // class : vừa là kiểu dữ liệu và vừa object
 
 import { ObjectId } from "mongodb"
+import { UserVerifyStatus } from "~/constants/enum"
 
-enum UserVerifyStatus {
-    Unverified,
-    Verified,
-    Banned
-}
+
 
 interface IUser {
     _id?: ObjectId
