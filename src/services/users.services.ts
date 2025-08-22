@@ -1,5 +1,6 @@
 import User from '~/model/schemas/User.shema'
 import databaseService from './database.services'
+import { RegisterRequestBody } from '~/model/requests/Users.requests';
 class UsersService {
     async login(payload: { email: string; password: string }) {
         const { email, password } = payload
@@ -14,14 +15,16 @@ class UsersService {
         }
     }
 
-    async register(payload: { email: string; password: string }) {
-        const { email, password } = payload
+    // quy định lại kiểu dữ liệu cho payload
+    async register(payload: RegisterRequestBody) {
+
         // tao 1 user moi
         const result = await databaseService.users.insertOne(
             // dung cai user schema da tao ra
             new User({
-                email,
-                password
+                ...payload,
+                // convert date_of_birth 
+                date_of_birth: new Date(payload.date_of_birth),
             })
         )
 

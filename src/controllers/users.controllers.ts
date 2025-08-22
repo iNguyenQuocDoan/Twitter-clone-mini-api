@@ -1,6 +1,6 @@
 import { Request, Response } from 'express'
-import User from '~/model/schemas/User.shema'
-import databaseService from '~/services/database.services'
+import { ParamsDictionary } from 'express-serve-static-core'
+import { RegisterRequestBody } from '~/model/requests/Users.requests'
 import usersService from '~/services/users.services'
 
 const loginController = async (req: Request, res: Response) => {
@@ -15,11 +15,12 @@ const loginController = async (req: Request, res: Response) => {
     }
 }
 
-const registerController = async (req: Request, res: Response) => {
-    const { email, password } = req.body
+const registerController = async (req: Request<ParamsDictionary, any, RegisterRequestBody>, res: Response) => {
+
 
     try {
-        await usersService.register({ email, password });
+        // truyền thằng body vào bên trong cái hàm này luôn
+        await usersService.register(req.body);
         return res.json({
             message: 'register success'
         })
