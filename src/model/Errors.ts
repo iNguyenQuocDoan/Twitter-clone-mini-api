@@ -23,7 +23,7 @@ export class ErrorWithStatus {
 export class EntityError extends Error {
     errors: ErrorType;
 
-    constructor({ message = USER_MESSAGES.emailInUse, errors }: { message?: string; errors: ErrorType }) {
+    constructor({ message = USER_MESSAGES.EMAIL_ALREADY_EXISTS, errors }: { message?: string; errors: ErrorType }) {
         super(message); // chỉ truyền message (string) cho Error
         this.status = HTTP_STATUS.UNPROCESSABLE_ENTITY;
         this.errors = errors;
