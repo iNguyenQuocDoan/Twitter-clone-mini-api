@@ -4,7 +4,7 @@ import { RegisterRequestBody } from '~/model/requests/Users.requests'
 import { hashPassword } from '~/utils/crypto'
 import { signToken } from '~/utils/jwt'
 import { TokenType } from '~/constants/enum'
-import { sign } from 'jsonwebtoken'
+
 class UsersService {
     // khai báo biến ở đây để sử dụng access token
     private signAccessToken(user_id: string) {

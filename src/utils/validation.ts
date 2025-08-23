@@ -1,10 +1,10 @@
 import express from 'express';
-import { body, validationResult, ContextRunner, ValidationChain } from 'express-validator';
+import { validationResult, ValidationChain } from 'express-validator';
 import { RunnableValidationChains } from 'express-validator/lib/middlewares/schema';
 
 
 // can be reused by many routes
-const validate = (validations: RunnableValidationChains<ValidationChain>) => {
+export const validate = (validations: RunnableValidationChains<ValidationChain>) => {
     return async (req: express.Request, res: express.Response, next: express.NextFunction) => {
         // sequential processing, stops running validations chain if one fails.
         await validations.run(req);
@@ -19,4 +19,3 @@ const validate = (validations: RunnableValidationChains<ValidationChain>) => {
 };
 
 
-export { validate };
