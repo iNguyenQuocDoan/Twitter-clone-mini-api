@@ -1,6 +1,7 @@
-import express, { NextFunction, Request, Response } from 'express'
+import express from 'express'
 import usersRouter from './routes/users.route'
 import databaseService from './services/database.services'
+import { defaultErrorHandler } from './middleware/error.middlewares'
 
 const app = express()
 
@@ -8,20 +9,17 @@ const app = express()
 // chuyển thành dạng json
 app.use(express.json())
 
+// connect db vào đây
+databaseService.connect()
+
 // Sử dụng router với prefix /user
 // cũng có thể hiểu được đây là 1 cái tiền tố
 app.use('/users', usersRouter)
 
-// connect db vào đây
-databaseService.connect()
+
 
 //thêm error handler
-app.use(((error: any, req: Request, res: Response, next: NextFunction) => {
-    console.log('Error occurred during registration:', error);
-    res.status(404).json({
-        error: error.message
-    });
-}))
+app.use(defaultErrorHandler)
 
 app.listen(9990, () => {
     console.log("server is running on port 9990")
