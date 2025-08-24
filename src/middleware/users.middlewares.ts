@@ -1,14 +1,54 @@
 import { Request, Response, NextFunction } from 'express';
 import { checkSchema } from 'express-validator';
 import { USER_MESSAGES } from '~/constants/messages';
-import { ErrorWithStatus } from '~/model/Errors';
 import usersService from '~/services/users.services';
 import { validate } from '~/utils/validation';
 
 export const loginValidator = (req: Request, res: Response, next: NextFunction) => {
-    const { email, password } = req.body;
-    if (!email || !password) return res.status(400).json({ error: 'Missing email or password' });
-    next();
+    checkSchema(
+        {
+            email: {
+                in: ['body'],
+                notEmpty: {
+                    errorMessage: USER_MESSAGES.EMAIL_IS_REQUIRED,
+                },
+                isEmail: {
+                    errorMessage: USER_MESSAGES.EMAIL_IS_NOT_VALID,
+                },
+                trim: true,
+                custom: {
+                    options: async (value) => {
+                        // import tu cai usersService vao de kiem ra co email hay chua
+                        const isExist = await usersService.checkEmailExists(value)
+                        // throw error neu email exists
+                        if (isExist) { throw new Error(USER_MESSAGES.NOT_FOUND) }
+                        return true
+                    }
+                }
+            },
+            password: {
+                in: ['body'],
+                notEmpty: {
+                    errorMessage: USER_MESSAGES.PASSWORD_IS_REQUIRED,
+                },
+                isString: {
+                    errorMessage: USER_MESSAGES.PASSWORD_MUST_BE_STRING,
+                },
+                isLength: { options: { min: 6, max: 100 }, errorMessage: USER_MESSAGES.PASSWORD_LENGTH_MUST_BE_FROM_6_TO_100 },
+                isStrongPassword: {
+                    options: {
+                        minLength: 6,
+                        minLowercase: 1,
+                        minUppercase: 1,
+                        minNumbers: 1,
+                        minSymbols: 1,
+                    },
+                    errorMessage: USER_MESSAGES.PASSWORD_MUST_BE_STRONG,
+                },
+                trim: true,
+            },
+        }
+    )
 };
 
 export const registerValidator = validate(
