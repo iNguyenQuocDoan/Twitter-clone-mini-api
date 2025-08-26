@@ -16,27 +16,21 @@ export const validate = (validations: RunnableValidationChains<ValidationChain>)
         const entityErrors = new EntityError({ errors: {} });
         // co loi thi tra ra
         if (!errors.isEmpty()) {
+            // trả về lỗi không phải do validation thông thường
+            for (const key in errorObject) {
+                const { msg } = errorObject[key];
+                if (msg instanceof ErrorWithStatus && msg.status !== HTTP_STATUS.UNPROCESSABLE_ENTITY) {
+                    return next(msg);
+                }
 
-            // dùng cái map này để chuyển đổi các lỗi thành 1 object
-            return res.status(400).json({
-                errors: errorObject
-
-            });
-        }
-        // trả về lỗi không phải do 
-        for (const key in errorObject) {
-            const { msg } = errorObject[key];
-            if (msg instanceof ErrorWithStatus && msg.status !== HTTP_STATUS.UNPROCESSABLE_ENTITY) {
-                return next(msg);
+                entityErrors.errors[key] = msg;
             }
 
-            entityErrors.errors[key] = msg
-
+            // Trả về EntityError với status 422
+            return next(entityErrors);
         }
 
-
-
-        next(entityErrors);
+        next();
     };
 };
 

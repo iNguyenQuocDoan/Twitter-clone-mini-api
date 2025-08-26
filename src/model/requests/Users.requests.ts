@@ -6,3 +6,8 @@ export interface RegisterRequestBody {
     confirm_password: string;
     date_of_birth: Date;
 }
+
+export interface LoginRequestBody {
+    email: string
+    password: string
+}
