@@ -1,6 +1,6 @@
 import { Request, Response } from 'express'
 import { NextFunction, ParamsDictionary } from 'express-serve-static-core'
-import { RegisterRequestBody, LoginRequestBody } from '~/model/requests/Users.requests'
+import { RegisterRequestBody, LoginRequestBody, LogoutRequestBody } from '~/model/requests/Users.requests'
 import usersService from '~/services/users.services'
 
 const loginController = async (req: Request<ParamsDictionary, any, LoginRequestBody>, res: Response, next: NextFunction) => {
@@ -40,6 +40,23 @@ const registerController = async (req: Request<ParamsDictionary, any, RegisterRe
     }
 }
 
+const logoutController = async (req: Request<ParamsDictionary, any, LogoutRequestBody>, res: Response, next: NextFunction) => {
+    try {
+        const { refresh_token } = req.body
+        const user = (req as any).user // Từ accessTokenValidator
 
+        const result = await usersService.logout({
+            user_id: user._id.toString(),
+            refresh_token
+        })
 
-export { loginController, registerController }
+        return res.json({
+            message: 'Logout successful',
+            data: result
+        })
+    } catch (error) {
+        next(error)
+    }
+}
+
+export { loginController, registerController, logoutController }

@@ -18,6 +18,7 @@ export const USER_MESSAGES = {
     CONFIRM_PASSWORD_LENGTH_MUST_BE_FROM_6_TO_100: "Confirm password length must be from 6 to 100 characters",
     CONFIRM_PASSWORD_MUST_MATCH: "Confirm password must match",
     DATE_OF_BIRTH_IS_REQUIRED: "Date of birth is required",
-    DATE_OF_BIRTH_IS_NOT_VALID: "Date of birth is not valid"
-
+    DATE_OF_BIRTH_IS_NOT_VALID: "Date of birth is not valid",
+    ACCESS_TOKEN_IS_REQUIRED: "Access token is required",
+    INVALID_ACCESS_TOKEN: "Invalid access token"
 } as const;

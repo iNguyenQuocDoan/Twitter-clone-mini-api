@@ -1,8 +1,10 @@
-import { checkSchema } from 'express-validator';
+import { check, checkSchema } from 'express-validator';
 import { USER_MESSAGES } from '~/constants/messages';
 import databaseService from '~/services/database.services';
 import usersService from '~/services/users.services';
+import { verifyToken } from '~/utils/jwt';
 import { validate } from '~/utils/validation';
+import { ObjectId } from 'mongodb';
 
 export const loginValidator = validate(
     checkSchema(
@@ -105,3 +107,61 @@ export const registerValidator = validate(
         },
     })
 );
+
+export const accessTokenValidator = validate(
+    checkSchema({
+        authorization: {
+            notEmpty: {
+                errorMessage: USER_MESSAGES.ACCESS_TOKEN_IS_REQUIRED,
+            },
+            custom: {
+                options: async (value: string, { req }) => {
+                    const access_token = value.replace('Bearer ', '');
+
+                    try {
+                        // Verify token với JWT secret
+                        const decoded = await verifyToken({ token: access_token });
+
+                        // Tìm user theo user_id trong token
+                        const user = await databaseService.users.findOne({
+                            _id: new ObjectId(decoded.user_id)
+                        });
+
+                        if (!user) {
+                            throw new Error(USER_MESSAGES.USER_NOT_FOUND);
+                        }
+
+                        // Gắn user và decoded token vào req
+                        req.user = user;
+                        req.decoded_authorization = decoded;
+                        return true;
+
+                    } catch (error) {
+                        throw new Error(USER_MESSAGES.INVALID_ACCESS_TOKEN);
+                    }
+                }
+            }
+        }
+    }, ['headers'])
+)
+
+export const refreshTokenValidator = validate(
+    checkSchema({
+        refresh_token: {
+            notEmpty: {
+                errorMessage: 'Refresh token is required',
+            },
+            custom: {
+                options: async (value: string, { req }) => {
+                    try {
+                        const decoded = await verifyToken({ token: value });
+                        req.decoded_refresh_token = decoded;
+                        return true;
+                    } catch (error) {
+                        throw new Error('Invalid refresh token');
+                    }
+                }
+            }
+        }
+    }, ['body'])
+)

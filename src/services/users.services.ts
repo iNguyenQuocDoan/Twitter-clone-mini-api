@@ -6,6 +6,9 @@ import { signToken } from '~/utils/jwt'
 import { TokenType } from '~/constants/enum'
 import { EntityError } from '~/model/Errors'
 import { USER_MESSAGES } from '~/constants/messages'
+import { ObjectId } from 'mongodb'
+
+
 
 class UsersService {
     // khai báo biến ở đây để sử dụng access token
@@ -117,6 +120,20 @@ class UsersService {
             user_id,
             access_token,
             refresh_token
+        }
+    }
+
+    async logout(payload: { user_id: string, refresh_token: string }) {
+        console.log("Logout service called with:", payload)
+
+        // Xóa refresh token khỏi cơ sở dữ liệu
+        await databaseService.users.updateOne(
+            { _id: new ObjectId(payload.user_id) },
+            { $pull: { refresh_tokens: payload.refresh_token } }
+        )
+
+        return {
+            message: "Logout successful"
         }
     }
 
