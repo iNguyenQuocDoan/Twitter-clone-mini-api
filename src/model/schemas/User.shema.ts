@@ -4,8 +4,6 @@
 import { ObjectId } from "mongodb"
 import { UserVerifyStatus } from "~/constants/enum"
 
-
-
 interface IUser {
     _id?: ObjectId
     name?: string

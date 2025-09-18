@@ -16,8 +16,6 @@ databaseService.connect()
 // cũng có thể hiểu được đây là 1 cái tiền tố
 app.use('/users', usersRouter)
 
-
-
 //thêm error handler
 app.use(defaultErrorHandler)
 
