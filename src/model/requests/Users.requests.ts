@@ -1,17 +1,17 @@
 // định nghĩa những cái body mà user sẽ gửi lên
 
 export interface RegisterRequestBody {
-    email: string;
-    password: string;
-    confirm_password: string;
-    date_of_birth: Date;
+  email: string
+  password: string
+  confirm_password: string
+  date_of_birth: Date
 }
 
 export interface LoginRequestBody {
-    email: string
-    password: string
+  email: string
+  password: string
 }
 
 export interface LogoutRequestBody {
-    refresh_token: string
+  refresh_token: string
 }

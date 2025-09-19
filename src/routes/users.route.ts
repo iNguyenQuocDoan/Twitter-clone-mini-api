@@ -22,7 +22,6 @@ usersRouter.post('/login', loginValidator, wrapRequestHandler(loginController))
  */
 usersRouter.post('/register', registerValidator, wrapRequestHandler(registerController));
 
-
 /**
  * Desc:logout user
  * Path: /logout

@@ -5,7 +5,7 @@ import { defaultErrorHandler } from './middleware/error.middlewares'
 
 const app = express()
 
-// phải chạy qua được cái middleware này 
+// phải chạy qua được cái middleware này
 // chuyển thành dạng json
 app.use(express.json())
 
@@ -20,5 +20,5 @@ app.use('/users', usersRouter)
 app.use(defaultErrorHandler)
 
 app.listen(9990, () => {
-    console.log("server is running on port 9990")
+  console.log('server is running on port 9990')
 })
