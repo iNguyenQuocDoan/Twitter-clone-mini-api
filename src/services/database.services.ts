@@ -1,6 +1,7 @@
 import { Collection, Db, MongoClient, ServerApiVersion } from 'mongodb'
 import { config } from 'dotenv'
 import User from '~/model/schemas/User.shema'
+import RefreshToken from '~/model/schemas/RefreshToken.shema'
 
 // import cái này vào để đọc được mây cái biến ở env
 config()
@@ -34,6 +35,11 @@ class DatabaseService {
   //getter để lấy ra collection users
   get users(): Collection<User> {
     return this.db.collection(process.env.USER_COLLECTION || 'users')
+  }
+
+  // refresh token
+  get refreshTokens(): Collection<RefreshToken> {
+    return this.db.collection(process.env.REFRESH_TOKEN_COLLECTION || 'refresh_tokens')
   }
 }
 

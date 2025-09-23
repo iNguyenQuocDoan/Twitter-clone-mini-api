@@ -7,6 +7,7 @@ import { TokenType } from '~/constants/enum'
 import { EntityError } from '~/model/Errors'
 import { USER_MESSAGES } from '~/constants/messages'
 import { ObjectId } from 'mongodb'
+import RefreshToken from '~/model/schemas/RefreshToken.shema'
 
 class UsersService {
   // khai báo biến ở đây để sử dụng access token
@@ -76,6 +77,10 @@ class UsersService {
     const user_id = user._id.toString()
     const [access_token, refresh_token] = await this.signAccessAndRefreshToken(user_id)
 
+    await databaseService.refreshTokens.insertOne(
+      new RefreshToken({ user_id: new ObjectId(user_id), token: refresh_token })
+    )
+
     return {
       access_token,
       refresh_token
@@ -110,6 +115,10 @@ class UsersService {
 
     const user_id = result.insertedId.toString()
     const [access_token, refresh_token] = await this.signAccessAndRefreshToken(user_id)
+
+    await databaseService.refreshTokens.insertOne(
+      new RefreshToken({ user_id: new ObjectId(user_id), token: refresh_token })
+    )
 
     return {
       user_id,
