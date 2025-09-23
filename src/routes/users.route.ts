@@ -1,6 +1,11 @@
 import { Router } from 'express'
 import { loginController, registerController, logoutController } from '~/controllers/users.controllers'
-import { accessTokenValidator, loginValidator, registerValidator, refreshTokenValidator } from '~/middleware/users.middlewares'
+import {
+  accessTokenValidator,
+  loginValidator,
+  registerValidator,
+  refreshTokenValidator
+} from '~/middleware/users.middlewares'
 import { wrapRequestHandler } from '~/utils/handlers'
 
 // Tạo router
@@ -20,7 +25,7 @@ usersRouter.post('/login', loginValidator, wrapRequestHandler(loginController))
  * Method: POST
  * Body: { email: string; password: string; confirm_password: string; date_of_birth: ISO8601 }
  */
-usersRouter.post('/register', registerValidator, wrapRequestHandler(registerController));
+usersRouter.post('/register', registerValidator, wrapRequestHandler(registerController))
 
 /**
  * Desc:logout user

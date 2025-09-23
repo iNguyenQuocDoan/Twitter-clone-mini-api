@@ -1,9 +1,13 @@
 import express from 'express'
+import cors from 'cors'
 import usersRouter from './routes/users.route'
 import databaseService from './services/database.services'
 import { defaultErrorHandler } from './middleware/error.middlewares'
 
 const app = express()
+
+// Enable CORS cho tất cả origins
+app.use(cors())
 
 // phải chạy qua được cái middleware này
 // chuyển thành dạng json
