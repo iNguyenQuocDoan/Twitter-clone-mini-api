@@ -21,5 +21,9 @@ export const USER_MESSAGES = {
   DATE_OF_BIRTH_IS_REQUIRED: 'Date of birth is required',
   DATE_OF_BIRTH_IS_NOT_VALID: 'Date of birth is not valid',
   ACCESS_TOKEN_IS_REQUIRED: 'Access token is required',
-  INVALID_ACCESS_TOKEN: 'Invalid access token'
+  REFRESH_TOKEN_IS_REQUIRED: 'Refresh token is required',
+  INVALID_ACCESS_TOKEN: 'Invalid access token',
+  EMAIL_VERIFY_TOKEN_IS_REQUIRED: 'Email verify token is required',
+  EMAIL_ALREADY_VERIFIED: 'Email is already verified',
+  EMAIL_VERIFY_SUCCESS: 'Email verify success'
 } as const

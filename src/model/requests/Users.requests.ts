@@ -15,3 +15,9 @@ export interface LoginRequestBody {
 export interface LogoutRequestBody {
   refresh_token: string
 }
+
+export interface TokenPayload {
+  user_id: string
+  iat: number
+  exp: number
+}

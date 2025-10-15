@@ -5,6 +5,8 @@ import usersService from '~/services/users.services'
 import { verifyToken } from '~/utils/jwt'
 import { validate } from '~/utils/validation'
 import { ObjectId } from 'mongodb'
+import { ErrorWithStatus } from '~/model/Errors'
+import HTTP_STATUS from '~/constants/httpStatus'
 
 export const loginValidator = validate(
   checkSchema(
@@ -117,16 +119,21 @@ export const accessTokenValidator = validate(
   checkSchema(
     {
       authorization: {
-        notEmpty: {
-          errorMessage: USER_MESSAGES.ACCESS_TOKEN_IS_REQUIRED
-        },
+        // notEmpty: {
+        //   errorMessage: USER_MESSAGES.ACCESS_TOKEN_IS_REQUIRED
+        // },
         custom: {
           options: async (value: string, { req }) => {
-            const access_token = value.replace('Bearer ', '')
-
+            const access_token = (value || '').split(' ')[1] // Bearer <token>
+            if (!access_token) {
+              throw new Error(USER_MESSAGES.ACCESS_TOKEN_IS_REQUIRED)
+            }
             try {
               // Verify token với JWT secret
-              const decoded = await verifyToken({ token: access_token })
+              const decoded = await verifyToken({
+                token: access_token,
+                secretOrPublicKey: process.env.JWT_SECRET_ACCESS_TOKEN as string
+              })
 
               // Tìm user theo user_id trong token
               const user = await databaseService.users.findOne({
@@ -156,14 +163,56 @@ export const refreshTokenValidator = validate(
   checkSchema(
     {
       refresh_token: {
+        trim: true,
         notEmpty: {
           errorMessage: 'Refresh token is required'
         },
         custom: {
           options: async (value: string, { req }) => {
+            if (!value) {
+              throw new ErrorWithStatus({
+                message: USER_MESSAGES.REFRESH_TOKEN_IS_REQUIRED,
+                status: HTTP_STATUS.UNAUTHORIZED
+              })
+            }
             try {
-              const decoded = await verifyToken({ token: value })
+              const decoded = await verifyToken({
+                token: value,
+                secretOrPublicKey: process.env.JWT_SECRET_REFRESH_TOKEN as string
+              })
               req.decoded_refresh_token = decoded
+              return true
+            } catch (error) {
+              throw new Error('Invalid refresh token')
+            }
+          }
+        }
+      }
+    },
+    ['body']
+  )
+)
+
+export const emailVerifyTokenValidator = validate(
+  checkSchema(
+    {
+      email_verify_token: {
+        trim: true,
+        custom: {
+          options: async (value: string, { req }) => {
+            if (!value) {
+              throw new ErrorWithStatus({
+                message: USER_MESSAGES.EMAIL_VERIFY_TOKEN_IS_REQUIRED,
+                status: HTTP_STATUS.UNAUTHORIZED
+              })
+            }
+            try {
+              const decoded_email_verify_token = await verifyToken({
+                token: value,
+                secretOrPublicKey: process.env.JWT_SECRET_EMAIL_VERIFY_TOKEN as string
+              })
+
+              req.decoded_email_verify_token = decoded_email_verify_token as Request
               return true
             } catch (error) {
               throw new Error('Invalid refresh token')
