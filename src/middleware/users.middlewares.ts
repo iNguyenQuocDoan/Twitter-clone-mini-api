@@ -8,7 +8,7 @@ import { ObjectId } from 'mongodb'
 import { ErrorWithStatus } from '~/model/Errors'
 import HTTP_STATUS from '~/constants/httpStatus'
 
-export const loginValidator = validate(
+const loginValidator = validate(
   checkSchema(
     {
       email: {
@@ -36,7 +36,7 @@ export const loginValidator = validate(
   )
 )
 
-export const registerValidator = validate(
+const registerValidator = validate(
   checkSchema({
     name: {
       in: ['body'],
@@ -115,7 +115,7 @@ export const registerValidator = validate(
   })
 )
 
-export const accessTokenValidator = validate(
+const accessTokenValidator = validate(
   checkSchema(
     {
       authorization: {
@@ -148,8 +148,23 @@ export const accessTokenValidator = validate(
               req.user = user
               req.decoded_authorization = decoded
               return true
-            } catch (error) {
-              throw new Error(USER_MESSAGES.INVALID_ACCESS_TOKEN)
+            } catch (error: any) {
+              // Log chi tiết lỗi để debug
+              console.log('Access token validation error:', error.message)
+              
+              // Kiểm tra nếu token hết hạn
+              if (error.message === 'jwt expired') {
+                throw new ErrorWithStatus({
+                  message: USER_MESSAGES.ACCESS_TOKEN_EXPIRED,
+                  status: HTTP_STATUS.UNAUTHORIZED
+                })
+              }
+              
+              // Các lỗi khác
+              throw new ErrorWithStatus({
+                message: USER_MESSAGES.INVALID_ACCESS_TOKEN,
+                status: HTTP_STATUS.UNAUTHORIZED
+              })
             }
           }
         }
@@ -159,7 +174,7 @@ export const accessTokenValidator = validate(
   )
 )
 
-export const refreshTokenValidator = validate(
+const refreshTokenValidator = validate(
   checkSchema(
     {
       refresh_token: {
@@ -193,7 +208,7 @@ export const refreshTokenValidator = validate(
   )
 )
 
-export const emailVerifyTokenValidator = validate(
+const emailVerifyTokenValidator = validate(
   checkSchema(
     {
       email_verify_token: {
@@ -224,3 +239,5 @@ export const emailVerifyTokenValidator = validate(
     ['body']
   )
 )
+
+export { loginValidator, registerValidator, accessTokenValidator, refreshTokenValidator, emailVerifyTokenValidator }

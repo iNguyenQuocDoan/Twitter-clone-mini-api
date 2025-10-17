@@ -75,7 +75,7 @@ const logoutController = async (
   }
 }
 
-const emailVerifyValidator = async (req: Request, res: Response, next: NextFunction) => {
+const emailVerifyController = async (req: Request, res: Response, next: NextFunction) => {
   const { user_id } = req.decoded_email_verify_token as TokenPayload
   const user = await databaseService.users.findOne({
     _id: new ObjectId(user_id)
@@ -101,4 +101,21 @@ const emailVerifyValidator = async (req: Request, res: Response, next: NextFunct
   })
 }
 
-export { loginController, registerController, logoutController, emailVerifyValidator }
+const resendVerifyEmailController = async (req: Request, res: Response, next: NextFunction) => {
+  const { user_id } = req.decoded_authorization as TokenPayload
+  const user = await databaseService.users.findOne({ _id: new ObjectId(user_id) })
+  if (!user) {
+    return res.status(HTTP_STATUS.NOT_FOUND).json({
+      message: USER_MESSAGES.USER_NOT_FOUND
+    })
+  }
+  if (user.email_verify_token === '') {
+    return res.json({
+      message: USER_MESSAGES.EMAIL_ALREADY_VERIFIED
+    })
+  }
+  const result = await usersService.resendVerifyEmail(user_id)
+  return res.json(result)
+}
+
+export { loginController, registerController, logoutController, emailVerifyController, resendVerifyEmailController }
