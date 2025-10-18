@@ -3,7 +3,15 @@ import { NextFunction, ParamsDictionary } from 'express-serve-static-core'
 import { ObjectId } from 'mongodb'
 import HTTP_STATUS from '~/constants/httpStatus'
 import { USER_MESSAGES } from '~/constants/messages'
-import { RegisterRequestBody, LoginRequestBody, LogoutRequestBody, TokenPayload } from '~/model/requests/Users.requests'
+import {
+  RegisterRequestBody,
+  LoginRequestBody,
+  LogoutRequestBody,
+  TokenPayload,
+  EmailVerifyRequestBody,
+  ForgotPasswordRequestBody
+} from '~/model/requests/Users.requests'
+import User from '~/model/schemas/User.shema'
 import databaseService from '~/services/database.services'
 import usersService from '~/services/users.services'
 
@@ -118,4 +126,21 @@ const resendVerifyEmailController = async (req: Request, res: Response, next: Ne
   return res.json(result)
 }
 
-export { loginController, registerController, logoutController, emailVerifyController, resendVerifyEmailController }
+const forgotPasswordController = async (
+  req: Request<ParamsDictionary, any, ForgotPasswordRequestBody>,
+  res: Response,
+  next: NextFunction
+) => {
+  const { _id } = req.user as User
+  const result = await usersService.forgotPassword(_id.toString())
+  return res.json(result)
+}
+
+export {
+  loginController,
+  registerController,
+  logoutController,
+  emailVerifyController,
+  resendVerifyEmailController,
+  forgotPasswordController
+}

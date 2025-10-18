@@ -16,6 +16,14 @@ export interface LogoutRequestBody {
   refresh_token: string
 }
 
+export interface EmailVerifyRequestBody {
+  email_verify_token: string
+}
+
+export interface ForgotPasswordRequestBody {
+  email: string
+}
+
 export interface TokenPayload {
   user_id: string
   iat: number

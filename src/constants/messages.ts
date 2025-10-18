@@ -27,5 +27,6 @@ export const USER_MESSAGES = {
   EMAIL_ALREADY_VERIFIED: 'Email is already verified',
   EMAIL_VERIFY_SUCCESS: 'Email verify success',
   RESEND_VERIFY_EMAIL_SUCCESS: 'Resend verify email success',
-  ACCESS_TOKEN_EXPIRED: 'Access token has expired'
+  ACCESS_TOKEN_EXPIRED: 'Access token has expired',
+  FORGOT_PASSWORD_SUCCESS: 'Forgot password success'
 } as const

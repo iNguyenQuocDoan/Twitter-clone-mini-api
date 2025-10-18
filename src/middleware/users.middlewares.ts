@@ -7,6 +7,7 @@ import { validate } from '~/utils/validation'
 import { ObjectId } from 'mongodb'
 import { ErrorWithStatus } from '~/model/Errors'
 import HTTP_STATUS from '~/constants/httpStatus'
+import { trim } from 'lodash'
 
 const loginValidator = validate(
   checkSchema(
@@ -151,7 +152,7 @@ const accessTokenValidator = validate(
             } catch (error: any) {
               // Log chi tiết lỗi để debug
               console.log('Access token validation error:', error.message)
-              
+
               // Kiểm tra nếu token hết hạn
               if (error.message === 'jwt expired') {
                 throw new ErrorWithStatus({
@@ -159,7 +160,7 @@ const accessTokenValidator = validate(
                   status: HTTP_STATUS.UNAUTHORIZED
                 })
               }
-              
+
               // Các lỗi khác
               throw new ErrorWithStatus({
                 message: USER_MESSAGES.INVALID_ACCESS_TOKEN,
@@ -240,4 +241,36 @@ const emailVerifyTokenValidator = validate(
   )
 )
 
-export { loginValidator, registerValidator, accessTokenValidator, refreshTokenValidator, emailVerifyTokenValidator }
+const forgotPasswordValidator = validate(
+  checkSchema(
+    {
+      email: {
+        isEmail: {
+          errorMessage: USER_MESSAGES.EMAIL_IS_NOT_VALID
+        },
+        trim: true,
+        // Bỏ custom validation ở đây vì sẽ check trong service
+        custom: {
+          options: async (value, { req }) => {
+            const user = await databaseService.users.findOne({ email: value })
+            if (!user) {
+              throw new Error(USER_MESSAGES.USER_NOT_FOUND)
+            }
+            req.user = user
+            return true
+          }
+        }
+      }
+    },
+    ['body']
+  )
+)
+
+export {
+  loginValidator,
+  registerValidator,
+  accessTokenValidator,
+  refreshTokenValidator,
+  emailVerifyTokenValidator,
+  forgotPasswordValidator
+}
