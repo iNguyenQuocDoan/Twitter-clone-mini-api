@@ -38,26 +38,22 @@ class UserServices {
   }
 
   async register(payload: RegisterRequestBody) {
-    try {
-      const { email, password } = payload
-      const user = new User({
-        ...payload,
-        date_of_birth: new Date(payload.date_of_birth),
-        password: hashPassword(password)
-      })
+    const { email, password } = payload
+    const user = new User({
+      ...payload,
+      date_of_birth: new Date(payload.date_of_birth),
+      password: hashPassword(password)
+    })
 
-      const result = await databaseService.user.insertOne(user)
-      const user_id = result.insertedId.toString()
-      const [access_token, refresh_token] = await Promise.all([
-        this.signAccessToken(user_id),
-        this.signRefreshToken(user_id)
-      ])
-      return {
-        access_token,
-        refresh_token
-      }
-    } catch (error) {
-      throw error
+    const result = await databaseService.user.insertOne(user)
+    const user_id = result.insertedId.toString()
+    const [access_token, refresh_token] = await Promise.all([
+      this.signAccessToken(user_id),
+      this.signRefreshToken(user_id)
+    ])
+    return {
+      access_token,
+      refresh_token
     }
   }
 }
