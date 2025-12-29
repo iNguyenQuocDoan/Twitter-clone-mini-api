@@ -1,10 +1,5 @@
 import { ObjectId } from 'mongodb'
-
-enum UserVerifyStatus {
-  Unverified,
-  Verified,
-  Banned
-}
+import { UserVerifyStatus } from '~/contants/enums'
 
 interface UserType {
   _id?: ObjectId
@@ -29,7 +24,7 @@ export default class User {
   _id?: ObjectId
   name?: string
   email: string
-  date_of_birth?: Date
+  date_of_birth: Date
   password: string
   created_at?: Date
   updated_at?: Date
