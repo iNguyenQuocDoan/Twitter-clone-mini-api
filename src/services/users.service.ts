@@ -3,7 +3,7 @@ import databaseService from './database.services'
 import { RegisterRequestBody } from '~/models/requests/User.requests'
 import { hashPassword } from '~/utils/crypto'
 import { signToken } from '~/utils/jwt'
-import { TokenType } from '~/contants/enums'
+import { TokenType } from '~/constants/enums'
 
 class UserServices {
   // access token
@@ -31,6 +31,11 @@ class UserServices {
     })
   }
 
+  // generate tokens
+  private signAccessAndRefreshToken(user_id: string) {
+    return Promise.all([this.signAccessToken(user_id), this.signRefreshToken(user_id)])
+  }
+
   // check email exist
   async checkEmailExist(email: string) {
     const isExist = await databaseService.user.findOne({ email })
@@ -47,10 +52,15 @@ class UserServices {
 
     const result = await databaseService.user.insertOne(user)
     const user_id = result.insertedId.toString()
-    const [access_token, refresh_token] = await Promise.all([
-      this.signAccessToken(user_id),
-      this.signRefreshToken(user_id)
-    ])
+    const [access_token, refresh_token] = await this.signAccessAndRefreshToken(user_id)
+    return {
+      access_token,
+      refresh_token
+    }
+  }
+
+  async login(user_id: string) {
+    const [access_token, refresh_token] = await this.signAccessAndRefreshToken(user_id)
     return {
       access_token,
       refresh_token

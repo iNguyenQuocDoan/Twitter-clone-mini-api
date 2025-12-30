@@ -1,19 +1,10 @@
-import { Request, Response, NextFunction } from 'express'
 import { checkSchema } from 'express-validator'
-import { USER_MESSAGES } from '~/contants/message'
+import { USER_MESSAGES } from '~/constants/message'
+import databaseService from '~/services/database.services'
 
 import userServices from '~/services/users.service'
+import { hashPassword } from '~/utils/crypto'
 import { validate } from '~/utils/validation'
-const loginValidator = (req: Request, res: Response, next: NextFunction) => {
-  const { email, password } = req.body
-  if (!email || !password) {
-    return res.status(400).json({
-      error: 'Missing email or password'
-    })
-  }
-  next()
-}
-
 const registerValidator = validate(
   checkSchema(
     {
@@ -41,8 +32,8 @@ const registerValidator = validate(
         trim: true,
         custom: {
           options: async (value) => {
-            const result = await userServices.checkEmailExist(value)
-            if (result) {
+            const user = await databaseService.user.findOne({ email: value })
+            if (user) {
               throw new Error(USER_MESSAGES.EMAIL_ALREADY_IN_USE)
             }
             return true
@@ -116,6 +107,52 @@ const registerValidator = validate(
           },
           errorMessage: USER_MESSAGES.DATE_OF_BIRTH_MUST_BE_ISO8601
         }
+      }
+    },
+    ['body']
+  )
+)
+
+const loginValidator = validate(
+  checkSchema(
+    {
+      email: {
+        notEmpty: {
+          errorMessage: USER_MESSAGES.EMAIL_IS_REQUIRED
+        },
+        isEmail: {
+          errorMessage: USER_MESSAGES.EMAIL_MUST_BE_VALID
+        },
+        trim: true,
+        custom: {
+          options: async (value: string, { req }) => {
+            const user = await databaseService.user.findOne({
+              email: value,
+              password: hashPassword(req.body.password)
+            })
+            if (!user) {
+              throw new Error(USER_MESSAGES.EMAIL_OR_PASSWORD_INCORRECT)
+            }
+            req.user = user
+            return true
+          }
+        }
+      },
+      password: {
+        notEmpty: {
+          errorMessage: USER_MESSAGES.PASSWORD_IS_REQUIRED
+        },
+        isString: {
+          errorMessage: USER_MESSAGES.PASSWORD_MUST_BE_STRING
+        },
+        isLength: {
+          options: {
+            min: 6,
+            max: 50
+          },
+          errorMessage: USER_MESSAGES.PASSWORD_LENGTH_INVALID
+        },
+        trim: true
       }
     },
     ['body']

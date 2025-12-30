@@ -1,7 +1,7 @@
 import { error } from 'console'
 import express from 'express'
 import { ValidationChain, validationResult } from 'express-validator'
-import { HTTP_STATUS } from '~/contants/httpStatus'
+import { HTTP_STATUS } from '~/constants/httpStatus'
 import { EntityError, ErrorsWithStatus } from '~/models/Errors'
 
 // can be reused by many routes

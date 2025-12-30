@@ -6,7 +6,7 @@ import { wrapRequestHandler } from '~/utils/handlers'
 // Tạo router
 const usersRouter = Router()
 
-usersRouter.post('/login', loginValidator, loginController)
+usersRouter.post('/login', loginValidator, wrapRequestHandler(loginController))
 
 /**
  * Description: Register new user
