@@ -1,3 +1,5 @@
+import { config } from 'dotenv'
+
 import User from '~/models/schemas/User.schema'
 import databaseService from './database.services'
 import { RegisterRequestBody } from '~/models/requests/User.requests'
@@ -6,6 +8,8 @@ import { signToken } from '~/utils/jwt'
 import { TokenType } from '~/constants/enums'
 import { RefreshToken } from '~/models/RefreshToken'
 import { ObjectId } from 'mongodb'
+
+config()
 
 class UserServices {
   // access token
