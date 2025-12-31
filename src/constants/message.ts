@@ -20,5 +20,7 @@ export const USER_MESSAGES = {
   PASSWORD_CONFIRMATION_DOES_NOT_MATCH: 'Password confirmation does not match password',
   DATE_OF_BIRTH_MUST_BE_ISO8601: 'Date of birth must be a valid ISO 8601 date',
   LOGIN_SUCCESS: 'Login success',
-  REGISTER_SUCCESS: 'Register success'
+  REGISTER_SUCCESS: 'Register success',
+  ACCESS_TOKEN_IS_REQUIRED: 'Authorization header is required',
+  AUTHORIZATION_HEADER_INVALID: 'Invalid authorization header'
 } as const

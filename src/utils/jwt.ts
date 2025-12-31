@@ -30,4 +30,21 @@ signToken({
   }
 })
 
-export { signToken }
+const verifyToken = ({
+  token,
+  secretOrPublicKey = process.env.JWT_SECRET_ACCESS_TOKEN as string
+}: {
+  token: string
+  secretOrPublicKey?: string
+}) => {
+  return new Promise<jwt.JwtPayload>((resolve, reject) => {
+    jwt.verify(token, secretOrPublicKey, (error, decoded) => {
+      if (error) {
+        return reject(error)
+      }
+      resolve(decoded as jwt.JwtPayload)
+    })
+  })
+}
+
+export { signToken, verifyToken }
