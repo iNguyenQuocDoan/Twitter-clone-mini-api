@@ -1,4 +1,5 @@
 import { checkSchema } from 'express-validator'
+import { StringToNumber } from 'lodash'
 import { HTTP_STATUS } from '~/constants/httpStatus'
 import { USER_MESSAGES } from '~/constants/message'
 import { ErrorsWithStatus } from '~/models/Errors'
@@ -178,7 +179,6 @@ const accessTokenValidator = validate(
                 status: HTTP_STATUS.UNAUTHORIZED
               })
             }
-            console.log('access_token', access_token)
             const decoded_authorization = await verifyToken({ token: access_token })
             req.decoded_authorization = decoded_authorization
             return true
@@ -190,4 +190,45 @@ const accessTokenValidator = validate(
   )
 )
 
-export { loginValidator, registerValidator, accessTokenValidator }
+const refreshTokenValidator = validate(
+  checkSchema(
+    {
+      refresh_token: {
+        notEmpty: {
+          errorMessage: USER_MESSAGES.REFRESH_TOKEN_IS_REQUIRED
+        },
+        custom: {
+          options: async (value: string, { req }) => {
+            try {
+              const [decoded_refresh_token, refresh_token] = await Promise.all([
+                verifyToken({ token: value }),
+                databaseService.refreshTokens.findOne({ token: value })
+              ])
+
+              if (refresh_token == null) {
+                throw new ErrorsWithStatus({
+                  message: USER_MESSAGES.REFRESH_TOKEN_INVALID,
+                  status: HTTP_STATUS.UNAUTHORIZED
+                })
+              }
+
+              req.decoded_refresh_token = decoded_refresh_token
+            } catch (error) {
+              if (error instanceof ErrorsWithStatus) {
+                throw error
+              }
+              throw new ErrorsWithStatus({
+                message: USER_MESSAGES.REFRESH_TOKEN_INVALID,
+                status: HTTP_STATUS.UNAUTHORIZED
+              })
+            }
+            return true
+          }
+        }
+      }
+    },
+    ['body']
+  )
+)
+
+export { loginValidator, registerValidator, accessTokenValidator, refreshTokenValidator }
