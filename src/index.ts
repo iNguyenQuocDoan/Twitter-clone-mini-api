@@ -1,9 +1,9 @@
 import express from 'express'
-import { NextFunction, Request, Response } from 'express-serve-static-core'
 
 import usersRouter from './routes/users.route'
 import databaseService from './services/database.services'
 import { defaultErrorsHandler } from './middleware/error.middlewares'
+import { setupSwagger } from './utils/swagger'
 
 const app = express()
 
@@ -17,6 +17,8 @@ app.use(express.json())
 // Sử dụng router với prefix /user
 // cũng có thể hiểu được đây là 1 cái tiền tố
 app.use('/users', usersRouter)
+
+setupSwagger(app)
 
 // handler lỗi - phải đặt sau tất cả routes
 app.use(defaultErrorsHandler)
