@@ -1,11 +1,9 @@
 import { checkSchema } from 'express-validator'
-import { StringToNumber } from 'lodash'
+import { ObjectId } from 'mongodb'
 import { HTTP_STATUS } from '~/constants/httpStatus'
 import { USER_MESSAGES } from '~/constants/message'
 import { ErrorsWithStatus } from '~/models/Errors'
 import databaseService from '~/services/database.services'
-
-import userServices from '~/services/users.service'
 import { hashPassword } from '~/utils/crypto'
 import { verifyToken } from '~/utils/jwt'
 import { validate } from '~/utils/validation'
@@ -231,4 +229,150 @@ const refreshTokenValidator = validate(
   )
 )
 
-export { loginValidator, registerValidator, accessTokenValidator, refreshTokenValidator }
+const emailVerifyTokenValidator = validate(
+  checkSchema(
+    {
+      email_verify_token: {
+        trim: true,
+        custom: {
+          options: async (value: string, { req }) => {
+            if (!value) {
+              throw new ErrorsWithStatus({
+                message: USER_MESSAGES.EMAIL_VERIFY_TOKEN_IS_REQUIRED,
+                status: HTTP_STATUS.UNAUTHORIZED
+              })
+            }
+            try {
+              const decoded_email_verify_token = await verifyToken({
+                token: value,
+                secretOrPublicKey: process.env.JWT_SECRET_EMAIL_VERIFY_TOKEN as string
+              })
+              req.decoded_email_verify_token = decoded_email_verify_token
+            } catch {
+              throw new ErrorsWithStatus({
+                message: USER_MESSAGES.EMAIL_VERIFY_TOKEN_INVALID,
+                status: HTTP_STATUS.UNAUTHORIZED
+              })
+            }
+            return true
+          }
+        }
+      }
+    },
+    ['body']
+  )
+)
+
+const forgotPasswordValidator = validate(
+  checkSchema(
+    {
+      email: {
+        notEmpty: { errorMessage: USER_MESSAGES.EMAIL_IS_REQUIRED },
+        isEmail: { errorMessage: USER_MESSAGES.EMAIL_MUST_BE_VALID },
+        trim: true,
+        custom: {
+          options: async (value: string, { req }) => {
+            const user = await databaseService.user.findOne({ email: value })
+            if (!user) {
+              throw new ErrorsWithStatus({ message: USER_MESSAGES.USER_NOT_FOUND, status: HTTP_STATUS.NOT_FOUND })
+            }
+            req.user = user
+            return true
+          }
+        }
+      }
+    },
+    ['body']
+  )
+)
+
+const forgotPasswordTokenValidator = validate(
+  checkSchema(
+    {
+      forgot_password_token: {
+        trim: true,
+        custom: {
+          options: async (value: string, { req }) => {
+            if (!value) {
+              throw new ErrorsWithStatus({
+                message: USER_MESSAGES.FORGOT_PASSWORD_TOKEN_IS_REQUIRED,
+                status: HTTP_STATUS.UNAUTHORIZED
+              })
+            }
+            try {
+              const decoded = await verifyToken({
+                token: value,
+                secretOrPublicKey: process.env.JWT_SECRET_FORGOT_PASSWORD_TOKEN as string
+              })
+              const user = await databaseService.user.findOne({ _id: new ObjectId(decoded.user_id as string) })
+              if (!user || user.forgot_password_token !== value) {
+                throw new ErrorsWithStatus({
+                  message: USER_MESSAGES.FORGOT_PASSWORD_TOKEN_INVALID,
+                  status: HTTP_STATUS.UNAUTHORIZED
+                })
+              }
+              req.decoded_forgot_password_token = decoded
+            } catch (error) {
+              if (error instanceof ErrorsWithStatus) throw error
+              throw new ErrorsWithStatus({
+                message: USER_MESSAGES.FORGOT_PASSWORD_TOKEN_INVALID,
+                status: HTTP_STATUS.UNAUTHORIZED
+              })
+            }
+            return true
+          }
+        }
+      }
+    },
+    ['body']
+  )
+)
+
+const resetPasswordValidator = validate(
+  checkSchema(
+    {
+      password: {
+        notEmpty: { errorMessage: USER_MESSAGES.PASSWORD_IS_REQUIRED },
+        isString: { errorMessage: USER_MESSAGES.PASSWORD_MUST_BE_STRING },
+        isLength: { options: { min: 6, max: 50 }, errorMessage: USER_MESSAGES.PASSWORD_LENGTH_INVALID },
+        isStrongPassword: {
+          options: { minLength: 6, minLowercase: 1, minUppercase: 1, minNumbers: 1, minSymbols: 1 },
+          errorMessage: USER_MESSAGES.PASSWORD_NOT_STRONG_ENOUGH
+        },
+        trim: true
+      },
+      confirm_password: {
+        notEmpty: { errorMessage: USER_MESSAGES.CONFIRM_PASSWORD_IS_REQUIRED },
+        isString: { errorMessage: USER_MESSAGES.CONFIRM_PASSWORD_MUST_BE_STRING },
+        isLength: { options: { min: 6, max: 50 }, errorMessage: USER_MESSAGES.CONFIRM_PASSWORD_LENGTH_INVALID },
+        isStrongPassword: {
+          options: { minLength: 6, minLowercase: 1, minUppercase: 1, minNumbers: 1, minSymbols: 1 },
+          errorMessage: USER_MESSAGES.CONFIRM_PASSWORD_NOT_STRONG_ENOUGH
+        },
+        custom: {
+          options: (value, { req }) => {
+            if (value !== req.body.password) throw new Error(USER_MESSAGES.PASSWORD_CONFIRMATION_DOES_NOT_MATCH)
+            return true
+          }
+        },
+        trim: true
+      },
+      forgot_password_token: {
+        trim: true,
+        notEmpty: { errorMessage: USER_MESSAGES.FORGOT_PASSWORD_TOKEN_IS_REQUIRED }
+      }
+    },
+    ['body']
+  )
+)
+
+export {
+  loginValidator,
+  registerValidator,
+  accessTokenValidator,
+  refreshTokenValidator,
+  emailVerifyTokenValidator,
+  forgotPasswordValidator,
+  forgotPasswordTokenValidator,
+  resetPasswordValidator
+}

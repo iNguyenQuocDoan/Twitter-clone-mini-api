@@ -25,5 +25,15 @@ export const USER_MESSAGES = {
   ACCESS_TOKEN_IS_REQUIRED: 'Authorization header is required',
   AUTHORIZATION_HEADER_INVALID: 'Invalid authorization header',
   REFRESH_TOKEN_IS_REQUIRED: 'Refresh token is required',
-  REFRESH_TOKEN_INVALID: 'Refresh token is invalid'
+  REFRESH_TOKEN_INVALID: 'Refresh token is invalid',
+  EMAIL_VERIFY_TOKEN_IS_REQUIRED: 'Email verify token is required',
+  EMAIL_VERIFY_TOKEN_INVALID: 'Email verify token is invalid',
+  EMAIL_ALREADY_VERIFIED: 'Email already verified',
+  EMAIL_VERIFY_SUCCESS: 'Email verified successfully',
+  RESEND_VERIFY_EMAIL_SUCCESS: 'Resend verify email successfully',
+  USER_IS_BANNED: 'User is banned',
+  FORGOT_PASSWORD_SUCCESS: 'Check email to reset password',
+  FORGOT_PASSWORD_TOKEN_IS_REQUIRED: 'Forgot password token is required',
+  FORGOT_PASSWORD_TOKEN_INVALID: 'Forgot password token is invalid',
+  RESET_PASSWORD_SUCCESS: 'Reset password successfully'
 } as const

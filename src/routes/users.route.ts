@@ -1,10 +1,22 @@
 import { Router } from 'express'
-import { loginController, logoutController, registerController } from '~/controllers/users.controllers'
+import {
+  loginController,
+  logoutController,
+  registerController,
+  verifyEmailController,
+  resendVerifyEmailController,
+  forgotPasswordController,
+  resetPasswordController
+} from '~/controllers/users.controllers'
 import {
   accessTokenValidator,
+  emailVerifyTokenValidator,
   loginValidator,
   refreshTokenValidator,
-  registerValidator
+  registerValidator,
+  forgotPasswordValidator,
+  forgotPasswordTokenValidator,
+  resetPasswordValidator
 } from '~/middleware/users.middlewares'
 import { wrapRequestHandler } from '~/utils/handlers'
 
@@ -35,5 +47,42 @@ usersRouter.post('/register', registerValidator, wrapRequestHandler(registerCont
  * Body:{refresh_token: string}
  */
 usersRouter.post('/logout', accessTokenValidator, refreshTokenValidator, wrapRequestHandler(logoutController))
+
+/**
+ * Description: Verify email
+ * Path: /verify-email
+ * Method: POST
+ * Body:{refresh_token: string}
+ */
+usersRouter.post('/verify-email', emailVerifyTokenValidator, wrapRequestHandler(verifyEmailController))
+
+/**
+ * Description: Resend verify email
+ * Path: /resend-verify-email
+ * Method: POST
+ * Header: {Authorization: Bearer <access_token>}
+ */
+usersRouter.post('/resend-verify-email', accessTokenValidator, wrapRequestHandler(resendVerifyEmailController))
+
+/**
+ * Description: Forgot password - send reset token to email
+ * Path: /forgot-password
+ * Method: POST
+ * Body: {email: string}
+ */
+usersRouter.post('/forgot-password', forgotPasswordValidator, wrapRequestHandler(forgotPasswordController))
+
+/**
+ * Description: Reset password
+ * Path: /reset-password
+ * Method: POST
+ * Body: {forgot_password_token: string, password: string, confirm_password: string}
+ */
+usersRouter.post(
+  '/reset-password',
+  forgotPasswordTokenValidator,
+  resetPasswordValidator,
+  wrapRequestHandler(resetPasswordController)
+)
 
 export default usersRouter
