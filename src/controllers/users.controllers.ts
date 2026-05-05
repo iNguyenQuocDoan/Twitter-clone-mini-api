@@ -1,10 +1,11 @@
 import { Request, Response } from 'express'
-import { NextFunction, ParamsDictionary } from 'express-serve-static-core'
+import { ParamsDictionary } from 'express-serve-static-core'
 
 import userServices from '~/services/users.service'
-import { RegisterRequestBody } from '~/models/requests/User.requests'
+import { RegisterRequestBody, UpdateMeRequestBody, ChangePasswordRequestBody } from '~/models/requests/User.requests'
 import { USER_MESSAGES } from '~/constants/message'
 import { UserVerifyStatus } from '~/constants/enums'
+import { hashPassword } from '~/utils/crypto'
 
 const loginController = async (req: Request, res: Response) => {
   const { user }: any = req
@@ -16,11 +17,7 @@ const loginController = async (req: Request, res: Response) => {
   })
 }
 
-const registerController = async (
-  req: Request<ParamsDictionary, any, RegisterRequestBody>,
-  res: Response,
-  next: NextFunction
-) => {
+const registerController = async (req: Request<ParamsDictionary, any, RegisterRequestBody>, res: Response) => {
   const result = await userServices.register(req.body)
 
   return res.status(200).json({
@@ -87,6 +84,36 @@ const resetPasswordController = async (req: Request, res: Response) => {
   return res.status(200).json({ message: USER_MESSAGES.RESET_PASSWORD_SUCCESS })
 }
 
+const getMeController = async (req: Request, res: Response) => {
+  const { user_id } = req.decoded_authorization as { user_id: string }
+  const user = await userServices.getUserById(user_id)
+  if (!user) {
+    return res.status(404).json({ message: USER_MESSAGES.USER_NOT_FOUND })
+  }
+  const { password, email_verify_token, forgot_password_token, ...safeUser } = user
+  return res.status(200).json({ message: USER_MESSAGES.GET_ME_SUCCESS, result: safeUser })
+}
+
+const updateMeController = async (req: Request<ParamsDictionary, any, UpdateMeRequestBody>, res: Response) => {
+  const { user_id } = req.decoded_authorization as { user_id: string }
+  const result = await userServices.updateMe(user_id, req.body)
+  return res.status(200).json({ message: USER_MESSAGES.UPDATE_ME_SUCCESS, result })
+}
+
+const changePasswordController = async (req: Request<ParamsDictionary, any, ChangePasswordRequestBody>, res: Response) => {
+  const { user_id } = req.decoded_authorization as { user_id: string }
+  const { old_password, password } = req.body
+  const user = await userServices.getUserById(user_id)
+  if (!user) {
+    return res.status(404).json({ message: USER_MESSAGES.USER_NOT_FOUND })
+  }
+  if (user.password !== hashPassword(old_password)) {
+    return res.status(400).json({ message: USER_MESSAGES.OLD_PASSWORD_INCORRECT })
+  }
+  await userServices.changePassword(user_id, password)
+  return res.status(200).json({ message: USER_MESSAGES.CHANGE_PASSWORD_SUCCESS })
+}
+
 export {
   loginController,
   registerController,
@@ -94,5 +121,8 @@ export {
   verifyEmailController,
   resendVerifyEmailController,
   forgotPasswordController,
-  resetPasswordController
+  resetPasswordController,
+  getMeController,
+  updateMeController,
+  changePasswordController
 }

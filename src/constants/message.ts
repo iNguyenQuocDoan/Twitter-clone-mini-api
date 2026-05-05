@@ -35,5 +35,14 @@ export const USER_MESSAGES = {
   FORGOT_PASSWORD_SUCCESS: 'Check email to reset password',
   FORGOT_PASSWORD_TOKEN_IS_REQUIRED: 'Forgot password token is required',
   FORGOT_PASSWORD_TOKEN_INVALID: 'Forgot password token is invalid',
-  RESET_PASSWORD_SUCCESS: 'Reset password successfully'
+  RESET_PASSWORD_SUCCESS: 'Reset password successfully',
+  GET_ME_SUCCESS: 'Get me successfully',
+  UPDATE_ME_SUCCESS: 'Update me successfully',
+  USERNAME_ALREADY_IN_USE: 'Username already in use',
+  USERNAME_INVALID: 'Username must be 4-15 characters, only letters, numbers and underscores',
+  CHANGE_PASSWORD_SUCCESS: 'Change password successfully',
+  OLD_PASSWORD_IS_REQUIRED: 'Old password is required',
+  OLD_PASSWORD_INCORRECT: 'Old password is incorrect',
+  NEW_PASSWORD_IS_REQUIRED: 'New password is required',
+  NEW_PASSWORD_MUST_BE_DIFFERENT: 'New password must be different from old password'
 } as const

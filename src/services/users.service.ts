@@ -2,7 +2,7 @@ import { config } from 'dotenv'
 
 import User from '~/models/schemas/User.schema'
 import databaseService from './database.services'
-import { RegisterRequestBody } from '~/models/requests/User.requests'
+import { RegisterRequestBody, UpdateMeRequestBody } from '~/models/requests/User.requests'
 import { hashPassword } from '~/utils/crypto'
 import { signToken } from '~/utils/jwt'
 import { TokenType, UserVerifyStatus } from '~/constants/enums'
@@ -155,6 +155,29 @@ class UserServices {
       { $set: { forgot_password_token, updated_at: new Date() } }
     )
     console.log('forgot_password_token:', forgot_password_token)
+  }
+
+  async updateMe(user_id: string, payload: UpdateMeRequestBody) {
+    const { date_of_birth, ...rest } = payload
+    const updated = await databaseService.user.findOneAndUpdate(
+      { _id: new ObjectId(user_id) },
+      {
+        $set: {
+          ...rest,
+          ...(date_of_birth ? { date_of_birth: new Date(date_of_birth) } : {}),
+          updated_at: new Date()
+        }
+      },
+      { returnDocument: 'after', projection: { password: 0, email_verify_token: 0, forgot_password_token: 0 } }
+    )
+    return updated
+  }
+
+  async changePassword(user_id: string, new_password: string) {
+    await databaseService.user.updateOne(
+      { _id: new ObjectId(user_id) },
+      { $set: { password: hashPassword(new_password), updated_at: new Date() } }
+    )
   }
 
   async resetPassword(user_id: string, password: string) {

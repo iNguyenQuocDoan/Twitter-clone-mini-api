@@ -6,7 +6,10 @@ import {
   verifyEmailController,
   resendVerifyEmailController,
   forgotPasswordController,
-  resetPasswordController
+  resetPasswordController,
+  getMeController,
+  updateMeController,
+  changePasswordController
 } from '~/controllers/users.controllers'
 import {
   accessTokenValidator,
@@ -16,7 +19,9 @@ import {
   registerValidator,
   forgotPasswordValidator,
   forgotPasswordTokenValidator,
-  resetPasswordValidator
+  resetPasswordValidator,
+  updateMeValidator,
+  changePasswordValidator
 } from '~/middleware/users.middlewares'
 import { wrapRequestHandler } from '~/utils/handlers'
 
@@ -278,5 +283,149 @@ usersRouter.post(
   resetPasswordValidator,
   wrapRequestHandler(resetPasswordController)
 )
+
+/**
+ * @swagger
+ * /users/me:
+ *   get:
+ *     tags:
+ *       - Users
+ *     summary: Get current user profile
+ *     security:
+ *       - BearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Get me successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Get me successfully
+ *                 result:
+ *                   type: object
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+usersRouter.get('/me', accessTokenValidator, wrapRequestHandler(getMeController))
+
+/**
+ * @swagger
+ * /users/me:
+ *   patch:
+ *     tags:
+ *       - Users
+ *     summary: Update current user profile
+ *     security:
+ *       - BearerAuth: []
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 example: John Doe
+ *               date_of_birth:
+ *                 type: string
+ *                 format: date-time
+ *                 example: '1990-01-01T00:00:00.000Z'
+ *               bio:
+ *                 type: string
+ *                 example: Hello world
+ *               location:
+ *                 type: string
+ *                 example: Ho Chi Minh City
+ *               website:
+ *                 type: string
+ *                 example: https://example.com
+ *               username:
+ *                 type: string
+ *                 example: johndoe
+ *               avatar:
+ *                 type: string
+ *                 example: https://example.com/avatar.jpg
+ *               cover_photo:
+ *                 type: string
+ *                 example: https://example.com/cover.jpg
+ *     responses:
+ *       200:
+ *         description: Update me successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Update me successfully
+ *                 result:
+ *                   type: object
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+usersRouter.patch('/me', accessTokenValidator, updateMeValidator, wrapRequestHandler(updateMeController))
+
+/**
+ * @swagger
+ * /users/change-password:
+ *   put:
+ *     tags:
+ *       - Users
+ *     summary: Change password
+ *     security:
+ *       - BearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - old_password
+ *               - password
+ *               - confirm_password
+ *             properties:
+ *               old_password:
+ *                 type: string
+ *                 example: OldPassword@123
+ *               password:
+ *                 type: string
+ *                 example: NewPassword@123
+ *               confirm_password:
+ *                 type: string
+ *                 example: NewPassword@123
+ *     responses:
+ *       200:
+ *         description: Change password successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/SuccessResponse'
+ *       400:
+ *         description: Old password incorrect
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+usersRouter.put('/change-password', accessTokenValidator, changePasswordValidator, wrapRequestHandler(changePasswordController))
 
 export default usersRouter

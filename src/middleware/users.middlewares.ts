@@ -366,6 +366,113 @@ const resetPasswordValidator = validate(
   )
 )
 
+const updateMeValidator = validate(
+  checkSchema(
+    {
+      name: {
+        optional: true,
+        isString: { errorMessage: USER_MESSAGES.NAME_MUST_BE_STRING },
+        isLength: { options: { min: 1, max: 100 }, errorMessage: USER_MESSAGES.NAME_LENGTH_INVALID },
+        trim: true
+      },
+      date_of_birth: {
+        optional: true,
+        isISO8601: {
+          options: { strict: true, strictSeparator: true },
+          errorMessage: USER_MESSAGES.DATE_OF_BIRTH_MUST_BE_ISO8601
+        }
+      },
+      bio: {
+        optional: true,
+        isString: true,
+        isLength: { options: { max: 200 } },
+        trim: true
+      },
+      location: {
+        optional: true,
+        isString: true,
+        isLength: { options: { max: 200 } },
+        trim: true
+      },
+      website: {
+        optional: true,
+        isString: true,
+        isURL: true,
+        trim: true
+      },
+      username: {
+        optional: true,
+        isString: true,
+        trim: true,
+        custom: {
+          options: async (value: string, { req }) => {
+            if (!/^[a-zA-Z0-9_]{4,15}$/.test(value)) {
+              throw new Error(USER_MESSAGES.USERNAME_INVALID)
+            }
+            const existing = await databaseService.user.findOne({ username: value })
+            if (existing && existing._id.toString() !== (req.decoded_authorization as any).user_id) {
+              throw new Error(USER_MESSAGES.USERNAME_ALREADY_IN_USE)
+            }
+            return true
+          }
+        }
+      },
+      avatar: {
+        optional: true,
+        isString: true,
+        isURL: true,
+        trim: true
+      },
+      cover_photo: {
+        optional: true,
+        isString: true,
+        isURL: true,
+        trim: true
+      }
+    },
+    ['body']
+  )
+)
+
+const changePasswordValidator = validate(
+  checkSchema(
+    {
+      old_password: {
+        notEmpty: { errorMessage: USER_MESSAGES.OLD_PASSWORD_IS_REQUIRED },
+        isString: true,
+        trim: true
+      },
+      password: {
+        notEmpty: { errorMessage: USER_MESSAGES.NEW_PASSWORD_IS_REQUIRED },
+        isString: { errorMessage: USER_MESSAGES.PASSWORD_MUST_BE_STRING },
+        isLength: { options: { min: 6, max: 50 }, errorMessage: USER_MESSAGES.PASSWORD_LENGTH_INVALID },
+        isStrongPassword: {
+          options: { minLength: 6, minLowercase: 1, minUppercase: 1, minNumbers: 1, minSymbols: 1 },
+          errorMessage: USER_MESSAGES.PASSWORD_NOT_STRONG_ENOUGH
+        },
+        trim: true
+      },
+      confirm_password: {
+        notEmpty: { errorMessage: USER_MESSAGES.CONFIRM_PASSWORD_IS_REQUIRED },
+        isString: { errorMessage: USER_MESSAGES.CONFIRM_PASSWORD_MUST_BE_STRING },
+        isLength: { options: { min: 6, max: 50 }, errorMessage: USER_MESSAGES.CONFIRM_PASSWORD_LENGTH_INVALID },
+        isStrongPassword: {
+          options: { minLength: 6, minLowercase: 1, minUppercase: 1, minNumbers: 1, minSymbols: 1 },
+          errorMessage: USER_MESSAGES.CONFIRM_PASSWORD_NOT_STRONG_ENOUGH
+        },
+        custom: {
+          options: (value, { req }) => {
+            if (value !== req.body.password) throw new Error(USER_MESSAGES.PASSWORD_CONFIRMATION_DOES_NOT_MATCH)
+            return true
+          }
+        },
+        trim: true
+      }
+    },
+    ['body']
+  )
+)
+
 export {
   loginValidator,
   registerValidator,
@@ -374,5 +481,7 @@ export {
   emailVerifyTokenValidator,
   forgotPasswordValidator,
   forgotPasswordTokenValidator,
-  resetPasswordValidator
+  resetPasswordValidator,
+  updateMeValidator,
+  changePasswordValidator
 }
