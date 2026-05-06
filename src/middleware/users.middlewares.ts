@@ -473,6 +473,48 @@ const changePasswordValidator = validate(
   )
 )
 
+const followValidator = validate(
+  checkSchema(
+    {
+      followed_user_id: {
+        trim: true,
+        custom: {
+          options: async (value: string, { req }) => {
+            if (!value) {
+              throw new ErrorsWithStatus({
+                message: USER_MESSAGES.FOLLOWED_USER_ID_IS_REQUIRED,
+                status: HTTP_STATUS.BAD_REQUEST
+              })
+            }
+            if (!ObjectId.isValid(value)) {
+              throw new ErrorsWithStatus({
+                message: USER_MESSAGES.FOLLOWED_USER_ID_INVALID,
+                status: HTTP_STATUS.BAD_REQUEST
+              })
+            }
+            const followed_user = await databaseService.user.findOne({ _id: new ObjectId(value) })
+            if (!followed_user) {
+              throw new ErrorsWithStatus({
+                message: USER_MESSAGES.FOLLOWED_USER_NOT_FOUND,
+                status: HTTP_STATUS.NOT_FOUND
+              })
+            }
+            const { user_id } = (req as any).decoded_authorization
+            if (value === user_id) {
+              throw new ErrorsWithStatus({
+                message: USER_MESSAGES.CANNOT_FOLLOW_YOURSELF,
+                status: HTTP_STATUS.BAD_REQUEST
+              })
+            }
+            return true
+          }
+        }
+      }
+    },
+    ['body']
+  )
+)
+
 export {
   loginValidator,
   registerValidator,
@@ -483,5 +525,6 @@ export {
   forgotPasswordTokenValidator,
   resetPasswordValidator,
   updateMeValidator,
-  changePasswordValidator
+  changePasswordValidator,
+  followValidator
 }

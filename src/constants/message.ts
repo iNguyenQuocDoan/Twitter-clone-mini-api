@@ -44,5 +44,14 @@ export const USER_MESSAGES = {
   OLD_PASSWORD_IS_REQUIRED: 'Old password is required',
   OLD_PASSWORD_INCORRECT: 'Old password is incorrect',
   NEW_PASSWORD_IS_REQUIRED: 'New password is required',
-  NEW_PASSWORD_MUST_BE_DIFFERENT: 'New password must be different from old password'
+  NEW_PASSWORD_MUST_BE_DIFFERENT: 'New password must be different from old password',
+  GET_PROFILE_SUCCESS: 'Get profile successfully',
+  FOLLOW_SUCCESS: 'Follow successfully',
+  UNFOLLOW_SUCCESS: 'Unfollow successfully',
+  ALREADY_FOLLOWED: 'Already followed',
+  NOT_FOLLOWED: 'Not followed yet',
+  FOLLOWED_USER_ID_IS_REQUIRED: 'Followed user id is required',
+  FOLLOWED_USER_ID_INVALID: 'Followed user id is invalid',
+  FOLLOWED_USER_NOT_FOUND: 'Followed user not found',
+  CANNOT_FOLLOW_YOURSELF: 'Cannot follow yourself'
 } as const

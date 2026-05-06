@@ -1,7 +1,8 @@
-import { Collection, Db, MongoClient, ServerApiVersion } from 'mongodb'
+import { Collection, Db, MongoClient } from 'mongodb'
 import { config } from 'dotenv'
 import User from '~/models/schemas/User.schema'
 import { RefreshToken } from '~/models/RefreshToken'
+import Follower from '~/models/schemas/Follower.schema'
 
 // import cái này vào để đọc được mây cái biến ở env
 config()
@@ -36,6 +37,10 @@ class DatabaseService {
 
   get refreshTokens(): Collection<RefreshToken> {
     return this.db.collection(process.env.REFRESH_TOKEN_COLLECTION as string)
+  }
+
+  get followers(): Collection<Follower> {
+    return this.db.collection(process.env.FOLLOWER_COLLECTION as string)
   }
 }
 

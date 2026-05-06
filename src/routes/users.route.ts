@@ -9,7 +9,10 @@ import {
   resetPasswordController,
   getMeController,
   updateMeController,
-  changePasswordController
+  changePasswordController,
+  getProfileController,
+  followController,
+  unfollowController
 } from '~/controllers/users.controllers'
 import {
   accessTokenValidator,
@@ -21,7 +24,8 @@ import {
   forgotPasswordTokenValidator,
   resetPasswordValidator,
   updateMeValidator,
-  changePasswordValidator
+  changePasswordValidator,
+  followValidator
 } from '~/middleware/users.middlewares'
 import { wrapRequestHandler } from '~/utils/handlers'
 
@@ -427,5 +431,116 @@ usersRouter.patch('/me', accessTokenValidator, updateMeValidator, wrapRequestHan
  *               $ref: '#/components/schemas/ErrorResponse'
  */
 usersRouter.put('/change-password', accessTokenValidator, changePasswordValidator, wrapRequestHandler(changePasswordController))
+
+/**
+ * @swagger
+ * /users/{username}:
+ *   get:
+ *     tags:
+ *       - Users
+ *     summary: Get public profile of a user
+ *     parameters:
+ *       - in: path
+ *         name: username
+ *         required: true
+ *         schema:
+ *           type: string
+ *         example: johndoe
+ *     responses:
+ *       200:
+ *         description: Get profile successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Get profile successfully
+ *                 result:
+ *                   type: object
+ *       404:
+ *         description: User not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+usersRouter.get('/:username', wrapRequestHandler(getProfileController))
+
+/**
+ * @swagger
+ * /users/follow:
+ *   post:
+ *     tags:
+ *       - Users
+ *     summary: Follow a user
+ *     security:
+ *       - BearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - followed_user_id
+ *             properties:
+ *               followed_user_id:
+ *                 type: string
+ *                 example: 64b1f1f1f1f1f1f1f1f1f1f1
+ *     responses:
+ *       200:
+ *         description: Follow successfully or already followed
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/SuccessResponse'
+ *       400:
+ *         description: Invalid user id or cannot follow yourself
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+usersRouter.post('/follow', accessTokenValidator, followValidator, wrapRequestHandler(followController))
+
+/**
+ * @swagger
+ * /users/follow/{user_id}:
+ *   delete:
+ *     tags:
+ *       - Users
+ *     summary: Unfollow a user
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: user_id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         example: 64b1f1f1f1f1f1f1f1f1f1f1
+ *     responses:
+ *       200:
+ *         description: Unfollow successfully or not followed
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/SuccessResponse'
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+usersRouter.delete('/follow/:user_id', accessTokenValidator, wrapRequestHandler(unfollowController))
 
 export default usersRouter

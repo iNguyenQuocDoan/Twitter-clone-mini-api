@@ -114,6 +114,35 @@ const changePasswordController = async (req: Request<ParamsDictionary, any, Chan
   return res.status(200).json({ message: USER_MESSAGES.CHANGE_PASSWORD_SUCCESS })
 }
 
+const getProfileController = async (req: Request, res: Response) => {
+  const { username } = req.params
+  const user = await userServices.getProfile(username)
+  if (!user) {
+    return res.status(404).json({ message: USER_MESSAGES.USER_NOT_FOUND })
+  }
+  return res.status(200).json({ message: USER_MESSAGES.GET_PROFILE_SUCCESS, result: user })
+}
+
+const followController = async (req: Request, res: Response) => {
+  const { user_id } = req.decoded_authorization as { user_id: string }
+  const { followed_user_id } = req.body
+  const result = await userServices.follow(user_id, followed_user_id)
+  if (result === null) {
+    return res.status(200).json({ message: USER_MESSAGES.ALREADY_FOLLOWED })
+  }
+  return res.status(200).json({ message: USER_MESSAGES.FOLLOW_SUCCESS })
+}
+
+const unfollowController = async (req: Request, res: Response) => {
+  const { user_id } = req.decoded_authorization as { user_id: string }
+  const { user_id: followed_user_id } = req.params
+  const deleted = await userServices.unfollow(user_id, followed_user_id)
+  if (!deleted) {
+    return res.status(200).json({ message: USER_MESSAGES.NOT_FOLLOWED })
+  }
+  return res.status(200).json({ message: USER_MESSAGES.UNFOLLOW_SUCCESS })
+}
+
 export {
   loginController,
   registerController,
@@ -124,5 +153,8 @@ export {
   resetPasswordController,
   getMeController,
   updateMeController,
-  changePasswordController
+  changePasswordController,
+  getProfileController,
+  followController,
+  unfollowController
 }
