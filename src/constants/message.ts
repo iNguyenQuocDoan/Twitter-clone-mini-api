@@ -65,5 +65,11 @@ export const USER_MESSAGES = {
   PARENT_ID_IS_REQUIRED: 'Parent id is required for retweet, comment and quote tweet',
   PARENT_ID_MUST_BE_NULL: 'Parent id must be null for tweet',
   PARENT_TWEET_NOT_FOUND: 'Parent tweet not found',
-  TWEET_ID_INVALID: 'Tweet id is invalid'
+  TWEET_ID_INVALID: 'Tweet id is invalid',
+  LIKE_SUCCESS: 'Like tweet successfully',
+  UNLIKE_SUCCESS: 'Unlike tweet successfully',
+  ALREADY_LIKED: 'Already liked',
+  BOOKMARK_SUCCESS: 'Bookmark tweet successfully',
+  UNBOOKMARK_SUCCESS: 'Unbookmark tweet successfully',
+  ALREADY_BOOKMARKED: 'Already bookmarked'
 } as const

@@ -4,6 +4,8 @@ import User from '~/models/schemas/User.schema'
 import { RefreshToken } from '~/models/RefreshToken'
 import Follower from '~/models/schemas/Follower.schema'
 import Tweet from '~/models/schemas/Tweet.schema'
+import Like from '~/models/schemas/Like.schema'
+import Bookmark from '~/models/schemas/Bookmark.schema'
 
 // import cái này vào để đọc được mây cái biến ở env
 config()
@@ -46,6 +48,14 @@ class DatabaseService {
 
   get tweets(): Collection<Tweet> {
     return this.db.collection(process.env.TWEET_COLLECTION as string)
+  }
+
+  get likes(): Collection<Like> {
+    return this.db.collection(process.env.LIKE_COLLECTION as string)
+  }
+
+  get bookmarks(): Collection<Bookmark> {
+    return this.db.collection(process.env.BOOKMARK_COLLECTION as string)
   }
 }
 
