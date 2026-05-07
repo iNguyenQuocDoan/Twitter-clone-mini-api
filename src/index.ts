@@ -1,6 +1,7 @@
 import express from 'express'
 
 import usersRouter from './routes/users.route'
+import tweetsRouter from './routes/tweets.route'
 import databaseService from './services/database.services'
 import { defaultErrorsHandler } from './middleware/error.middlewares'
 import { setupSwagger } from './utils/swagger'
@@ -17,6 +18,7 @@ app.use(express.json())
 // Sử dụng router với prefix /user
 // cũng có thể hiểu được đây là 1 cái tiền tố
 app.use('/users', usersRouter)
+app.use('/tweets', tweetsRouter)
 
 setupSwagger(app)
 

@@ -3,6 +3,7 @@ import { config } from 'dotenv'
 import User from '~/models/schemas/User.schema'
 import { RefreshToken } from '~/models/RefreshToken'
 import Follower from '~/models/schemas/Follower.schema'
+import Tweet from '~/models/schemas/Tweet.schema'
 
 // import cái này vào để đọc được mây cái biến ở env
 config()
@@ -41,6 +42,10 @@ class DatabaseService {
 
   get followers(): Collection<Follower> {
     return this.db.collection(process.env.FOLLOWER_COLLECTION as string)
+  }
+
+  get tweets(): Collection<Tweet> {
+    return this.db.collection(process.env.TWEET_COLLECTION as string)
   }
 }
 

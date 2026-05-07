@@ -53,5 +53,17 @@ export const USER_MESSAGES = {
   FOLLOWED_USER_ID_IS_REQUIRED: 'Followed user id is required',
   FOLLOWED_USER_ID_INVALID: 'Followed user id is invalid',
   FOLLOWED_USER_NOT_FOUND: 'Followed user not found',
-  CANNOT_FOLLOW_YOURSELF: 'Cannot follow yourself'
+  CANNOT_FOLLOW_YOURSELF: 'Cannot follow yourself',
+  CREATE_TWEET_SUCCESS: 'Create tweet successfully',
+  GET_TWEET_SUCCESS: 'Get tweet successfully',
+  GET_TIMELINE_SUCCESS: 'Get timeline successfully',
+  TWEET_NOT_FOUND: 'Tweet not found',
+  TWEET_TYPE_INVALID: 'Tweet type is invalid',
+  TWEET_AUDIENCE_INVALID: 'Tweet audience is invalid',
+  TWEET_CONTENT_IS_REQUIRED: 'Tweet content is required for tweet and quote tweet',
+  TWEET_CONTENT_MUST_BE_EMPTY: 'Tweet content must be empty for retweet',
+  PARENT_ID_IS_REQUIRED: 'Parent id is required for retweet, comment and quote tweet',
+  PARENT_ID_MUST_BE_NULL: 'Parent id must be null for tweet',
+  PARENT_TWEET_NOT_FOUND: 'Parent tweet not found',
+  TWEET_ID_INVALID: 'Tweet id is invalid'
 } as const

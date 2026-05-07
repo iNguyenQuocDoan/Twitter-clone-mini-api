@@ -63,7 +63,10 @@ const options: swaggerJsdoc.Options = {
     },
     servers: [{ url: 'http://localhost:9990', description: 'Development server' }]
   },
-  apis: [path.resolve(__dirname, '../routes/*.route.ts'), path.resolve(__dirname, '../routes/*.route.js')]
+  apis: [
+    path.resolve(__dirname, '../routes/*.route.ts'),
+    path.resolve(__dirname, '../routes/*.route.js')
+  ]
 }
 
 const swaggerSpec = swaggerJsdoc(options)

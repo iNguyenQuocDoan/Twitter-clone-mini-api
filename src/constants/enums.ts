@@ -11,4 +11,16 @@ enum TokenType {
   EmailVerifyToken
 }
 
-export { UserVerifyStatus, TokenType }
+enum TweetType {
+  Tweet,
+  Retweet,
+  Comment,
+  QuoteTweet
+}
+
+enum TweetAudience {
+  Everyone,
+  TwitterCircle
+}
+
+export { UserVerifyStatus, TokenType, TweetType, TweetAudience }
