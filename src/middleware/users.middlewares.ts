@@ -1,5 +1,6 @@
 import { checkSchema } from 'express-validator'
 import { ObjectId } from 'mongodb'
+import { ERROR_CODE } from '~/constants/errorCode'
 import { HTTP_STATUS } from '~/constants/httpStatus'
 import { USER_MESSAGES } from '~/constants/message'
 import { ErrorsWithStatus } from '~/models/Errors'
@@ -174,12 +175,21 @@ const accessTokenValidator = validate(
             if (!access_token) {
               throw new ErrorsWithStatus({
                 message: USER_MESSAGES.ACCESS_TOKEN_IS_REQUIRED,
-                status: HTTP_STATUS.UNAUTHORIZED
+                status: HTTP_STATUS.UNAUTHORIZED,
+                code: ERROR_CODE.AUTH_003
               })
             }
-            const decoded_authorization = await verifyToken({ token: access_token })
-            req.decoded_authorization = decoded_authorization
-            return true
+            try {
+              const decoded_authorization = await verifyToken({ token: access_token })
+              req.decoded_authorization = decoded_authorization
+              return true
+            } catch {
+              throw new ErrorsWithStatus({
+                message: USER_MESSAGES.ACCESS_TOKEN_IS_REQUIRED,
+                status: HTTP_STATUS.UNAUTHORIZED,
+                code: ERROR_CODE.AUTH_003
+              })
+            }
           }
         }
       }
@@ -206,7 +216,8 @@ const refreshTokenValidator = validate(
               if (refresh_token == null) {
                 throw new ErrorsWithStatus({
                   message: USER_MESSAGES.REFRESH_TOKEN_INVALID,
-                  status: HTTP_STATUS.UNAUTHORIZED
+                  status: HTTP_STATUS.UNAUTHORIZED,
+                  code: ERROR_CODE.AUTH_004
                 })
               }
 
@@ -217,7 +228,8 @@ const refreshTokenValidator = validate(
               }
               throw new ErrorsWithStatus({
                 message: USER_MESSAGES.REFRESH_TOKEN_INVALID,
-                status: HTTP_STATUS.UNAUTHORIZED
+                status: HTTP_STATUS.UNAUTHORIZED,
+                code: ERROR_CODE.AUTH_004
               })
             }
             return true
@@ -239,7 +251,8 @@ const emailVerifyTokenValidator = validate(
             if (!value) {
               throw new ErrorsWithStatus({
                 message: USER_MESSAGES.EMAIL_VERIFY_TOKEN_IS_REQUIRED,
-                status: HTTP_STATUS.UNAUTHORIZED
+                status: HTTP_STATUS.UNAUTHORIZED,
+                code: ERROR_CODE.AUTH_003
               })
             }
             try {
@@ -251,7 +264,8 @@ const emailVerifyTokenValidator = validate(
             } catch {
               throw new ErrorsWithStatus({
                 message: USER_MESSAGES.EMAIL_VERIFY_TOKEN_INVALID,
-                status: HTTP_STATUS.UNAUTHORIZED
+                status: HTTP_STATUS.UNAUTHORIZED,
+                code: ERROR_CODE.AUTH_003
               })
             }
             return true
@@ -274,7 +288,7 @@ const forgotPasswordValidator = validate(
           options: async (value: string, { req }) => {
             const user = await databaseService.user.findOne({ email: value })
             if (!user) {
-              throw new ErrorsWithStatus({ message: USER_MESSAGES.USER_NOT_FOUND, status: HTTP_STATUS.NOT_FOUND })
+              throw new ErrorsWithStatus({ message: USER_MESSAGES.USER_NOT_FOUND, status: HTTP_STATUS.NOT_FOUND, code: ERROR_CODE.USER_001 })
             }
             req.user = user
             return true
@@ -296,7 +310,8 @@ const forgotPasswordTokenValidator = validate(
             if (!value) {
               throw new ErrorsWithStatus({
                 message: USER_MESSAGES.FORGOT_PASSWORD_TOKEN_IS_REQUIRED,
-                status: HTTP_STATUS.UNAUTHORIZED
+                status: HTTP_STATUS.UNAUTHORIZED,
+                code: ERROR_CODE.AUTH_004
               })
             }
             try {
@@ -308,7 +323,8 @@ const forgotPasswordTokenValidator = validate(
               if (!user || user.forgot_password_token !== value) {
                 throw new ErrorsWithStatus({
                   message: USER_MESSAGES.FORGOT_PASSWORD_TOKEN_INVALID,
-                  status: HTTP_STATUS.UNAUTHORIZED
+                  status: HTTP_STATUS.UNAUTHORIZED,
+                  code: ERROR_CODE.AUTH_004
                 })
               }
               req.decoded_forgot_password_token = decoded
@@ -316,7 +332,8 @@ const forgotPasswordTokenValidator = validate(
               if (error instanceof ErrorsWithStatus) throw error
               throw new ErrorsWithStatus({
                 message: USER_MESSAGES.FORGOT_PASSWORD_TOKEN_INVALID,
-                status: HTTP_STATUS.UNAUTHORIZED
+                status: HTTP_STATUS.UNAUTHORIZED,
+                code: ERROR_CODE.AUTH_004
               })
             }
             return true
@@ -483,27 +500,31 @@ const followValidator = validate(
             if (!value) {
               throw new ErrorsWithStatus({
                 message: USER_MESSAGES.FOLLOWED_USER_ID_IS_REQUIRED,
-                status: HTTP_STATUS.BAD_REQUEST
+                status: HTTP_STATUS.BAD_REQUEST,
+                code: ERROR_CODE.USER_001
               })
             }
             if (!ObjectId.isValid(value)) {
               throw new ErrorsWithStatus({
                 message: USER_MESSAGES.FOLLOWED_USER_ID_INVALID,
-                status: HTTP_STATUS.BAD_REQUEST
+                status: HTTP_STATUS.BAD_REQUEST,
+                code: ERROR_CODE.USER_001
               })
             }
             const followed_user = await databaseService.user.findOne({ _id: new ObjectId(value) })
             if (!followed_user) {
               throw new ErrorsWithStatus({
                 message: USER_MESSAGES.FOLLOWED_USER_NOT_FOUND,
-                status: HTTP_STATUS.NOT_FOUND
+                status: HTTP_STATUS.NOT_FOUND,
+                code: ERROR_CODE.USER_001
               })
             }
             const { user_id } = (req as any).decoded_authorization
             if (value === user_id) {
               throw new ErrorsWithStatus({
                 message: USER_MESSAGES.CANNOT_FOLLOW_YOURSELF,
-                status: HTTP_STATUS.BAD_REQUEST
+                status: HTTP_STATUS.BAD_REQUEST,
+                code: ERROR_CODE.USER_001
               })
             }
             return true

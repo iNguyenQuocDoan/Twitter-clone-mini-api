@@ -1,19 +1,23 @@
 import { NextFunction, Request, Response } from 'express'
-import { omit } from 'lodash'
 import { HTTP_STATUS } from '~/constants/httpStatus'
-import { ErrorsWithStatus } from '~/models/Errors'
+import { ERROR_CODE } from '~/constants/errorCode'
+import { EntityError, ErrorsWithStatus } from '~/models/Errors'
+import { errorResponse } from '~/utils/response'
 
 export const defaultErrorsHandler = (err: any, req: Request, res: Response, next: NextFunction) => {
-  if (err instanceof ErrorsWithStatus) {
-    return res.status(err.status).json(omit(err, 'status'))
+  if (err instanceof EntityError) {
+    return res.status(HTTP_STATUS.UNPROCESSABLE_ENTITY).json(
+      errorResponse(err.code, err.message, err.errors)
+    )
   }
 
-  Object.getOwnPropertyNames(err).forEach((key) => {
-    Object.defineProperty(err, key, { enumerable: true })
-  })
+  if (err instanceof ErrorsWithStatus) {
+    return res.status(err.status).json(
+      errorResponse(err.code, err.message)
+    )
+  }
 
-  res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
-    message: err.message,
-    errorInfo: err.errorInfo
-  })
+  return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json(
+    errorResponse(ERROR_CODE.SYS_001, err.message || 'Internal server error')
+  )
 }
