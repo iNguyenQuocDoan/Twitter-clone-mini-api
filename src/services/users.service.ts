@@ -136,6 +136,18 @@ class UserServices {
     await databaseService.refreshTokens.deleteOne({ token: refresh_token })
   }
 
+  async refreshToken(user_id: string, old_refresh_token: string) {
+    const [access_token, refresh_token] = await this.signAccessAndRefreshToken(user_id)
+    await databaseService.refreshTokens.deleteOne({ token: old_refresh_token })
+    await databaseService.refreshTokens.insertOne(
+      new RefreshToken({
+        user_id: new ObjectId(user_id),
+        token: refresh_token
+      })
+    )
+    return { access_token, refresh_token }
+  }
+
   async resendVerifyEmail(user_id: string) {
     const email_verify_token = await this.signEmailVerifyToken(user_id)
     await databaseService.user.updateOne(

@@ -3,6 +3,7 @@ import {
   loginController,
   logoutController,
   registerController,
+  refreshTokenController,
   verifyEmailController,
   resendVerifyEmailController,
   forgotPasswordController,
@@ -137,6 +138,8 @@ usersRouter.post('/login', loginValidator, wrapRequestHandler(loginController))
  *               $ref: '#/components/schemas/ErrorResponse'
  */
 usersRouter.post('/logout', accessTokenValidator, refreshTokenValidator, wrapRequestHandler(logoutController))
+
+usersRouter.post('/refresh-token', refreshTokenValidator, wrapRequestHandler(refreshTokenController))
 
 /**
  * @swagger

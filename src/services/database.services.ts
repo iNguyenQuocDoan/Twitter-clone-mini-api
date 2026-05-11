@@ -10,7 +10,10 @@ import Bookmark from '~/models/schemas/Bookmark.schema'
 // import cái này vào để đọc được mây cái biến ở env
 config()
 
-const uri = `mongodb+srv://${process.env.DB_USERNAME}:${process.env.DB_PASSWORD}@cluster0.uerz2au.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`
+// Ưu tiên MONGO_URI (local). Fallback sang Atlas khi có DB_USERNAME/DB_PASSWORD.
+const uri =
+  process.env.MONGO_URI ||
+  `mongodb+srv://${process.env.DB_USERNAME}:${process.env.DB_PASSWORD}@cluster0.uerz2au.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`
 
 class DatabaseService {
   private client: MongoClient

@@ -26,6 +26,13 @@ const logoutController = async (req: Request, res: Response) => {
   return res.status(200).json(successResponse(null, USER_MESSAGES.LOGOUT_SUCCESS))
 }
 
+const refreshTokenController = async (req: Request, res: Response) => {
+  const { refresh_token } = req.body
+  const { user_id } = req.decoded_refresh_token as { user_id: string }
+  const result = await userServices.refreshToken(user_id, refresh_token)
+  return res.status(200).json(successResponse(result, USER_MESSAGES.LOGIN_SUCCESS))
+}
+
 const verifyEmailController = async (req: Request, res: Response) => {
   const { user_id } = req.decoded_email_verify_token as { user_id: string }
   const user = await userServices.getUserById(user_id)
@@ -132,6 +139,7 @@ export {
   loginController,
   registerController,
   logoutController,
+  refreshTokenController,
   verifyEmailController,
   resendVerifyEmailController,
   forgotPasswordController,
