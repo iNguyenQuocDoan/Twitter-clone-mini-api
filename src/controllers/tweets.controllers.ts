@@ -13,8 +13,8 @@ const createTweetController = async (req: Request<ParamsDictionary, any, CreateT
 
 const getTweetController = async (req: Request, res: Response) => {
   const { tweet_id } = req.params
-  const is_authenticated = Boolean(req.decoded_authorization)
-  const result = await tweetServices.getTweet(tweet_id, is_authenticated)
+  const current_user_id = (req.decoded_authorization as { user_id?: string } | undefined)?.user_id
+  const result = await tweetServices.getTweet(tweet_id, current_user_id)
   return res.status(200).json(successResponse(result, USER_MESSAGES.GET_TWEET_SUCCESS))
 }
 
