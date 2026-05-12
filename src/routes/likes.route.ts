@@ -85,6 +85,6 @@ likesRouter.post('/', accessTokenValidator, tweetIdBodyValidator, wrapRequestHan
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-likesRouter.delete('/:tweet_id', accessTokenValidator, tweetIdParamValidator, wrapRequestHandler(unlikeTweetController))
+likesRouter.delete('/tweets/:tweet_id', accessTokenValidator, tweetIdParamValidator, wrapRequestHandler(unlikeTweetController))
 
 export default likesRouter

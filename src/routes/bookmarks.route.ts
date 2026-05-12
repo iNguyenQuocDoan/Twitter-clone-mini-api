@@ -85,6 +85,6 @@ bookmarksRouter.post('/', accessTokenValidator, tweetIdBodyValidator, wrapReques
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-bookmarksRouter.delete('/:tweet_id', accessTokenValidator, tweetIdParamValidator, wrapRequestHandler(unbookmarkTweetController))
+bookmarksRouter.delete('/tweets/:tweet_id', accessTokenValidator, tweetIdParamValidator, wrapRequestHandler(unbookmarkTweetController))
 
 export default bookmarksRouter
