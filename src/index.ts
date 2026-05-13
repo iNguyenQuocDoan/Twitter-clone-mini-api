@@ -5,6 +5,7 @@ import usersRouter from '~/routes/users.route'
 import tweetsRouter from '~/routes/tweets.route'
 import likesRouter from '~/routes/likes.route'
 import bookmarksRouter from '~/routes/bookmarks.route'
+import adminRouter from '~/routes/admin.route'
 import databaseService from '~/services/database.services'
 import { defaultErrorsHandler } from '~/middleware/error.middlewares'
 import { setupSwagger } from '~/utils/swagger'
@@ -18,6 +19,7 @@ app.use('/users', usersRouter)
 app.use('/tweets', tweetsRouter)
 app.use('/likes', likesRouter)
 app.use('/bookmarks', bookmarksRouter)
+app.use('/admin', adminRouter)
 
 setupSwagger(app)
 

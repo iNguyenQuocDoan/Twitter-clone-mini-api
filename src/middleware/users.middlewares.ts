@@ -4,6 +4,7 @@ import { ObjectId } from 'mongodb'
 import { ERROR_CODE } from '~/constants/errorCode'
 import { HTTP_STATUS } from '~/constants/httpStatus'
 import { USER_MESSAGES } from '~/constants/message'
+import { UserRole } from '~/constants/enums'
 import { ErrorsWithStatus } from '~/models/Errors'
 import databaseService from '~/services/database.services'
 import { hashPassword } from '~/utils/crypto'
@@ -215,6 +216,32 @@ const optionalAccessTokenValidator = async (req: Request, _res: Response, next: 
     }
   }
   next()
+}
+
+/**
+ * Gate endpoint to UserRole.Admin. MUST be used AFTER `accessTokenValidator`
+ * so `req.decoded_authorization.user_id` is set. Issues an extra DB read per
+ * request — admin routes are low-traffic so the cost is acceptable.
+ */
+const requireAdmin = async (req: Request, res: Response, next: NextFunction) => {
+  const decoded = req.decoded_authorization as { user_id?: string } | undefined
+  if (!decoded?.user_id) {
+    return res.status(HTTP_STATUS.UNAUTHORIZED).json({
+      success: false,
+      error: { code: ERROR_CODE.AUTH_003, message: USER_MESSAGES.ACCESS_TOKEN_IS_REQUIRED, details: {} },
+    })
+  }
+  const adminUser = await databaseService.user.findOne(
+    { _id: new ObjectId(decoded.user_id) },
+    { projection: { role: 1 } },
+  )
+  if (!adminUser || adminUser.role !== UserRole.Admin) {
+    return res.status(HTTP_STATUS.FORBIDDEN).json({
+      success: false,
+      error: { code: ERROR_CODE.AUTH_005, message: 'Admin role required', details: {} },
+    })
+  }
+  return next()
 }
 
 const refreshTokenValidator = validate(
@@ -560,6 +587,7 @@ export {
   registerValidator,
   accessTokenValidator,
   optionalAccessTokenValidator,
+  requireAdmin,
   refreshTokenValidator,
   emailVerifyTokenValidator,
   forgotPasswordValidator,
