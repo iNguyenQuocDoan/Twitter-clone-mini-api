@@ -8,7 +8,7 @@ import Follower from '~/models/schemas/Follower.schema'
 import Like from '~/models/schemas/Like.schema'
 import Bookmark from '~/models/schemas/Bookmark.schema'
 import { hashPassword } from '~/utils/crypto'
-import { TweetAudience, TweetType, UserVerifyStatus } from '~/constants/enums'
+import { TweetAudience, TweetType, UserRole, UserVerifyStatus } from '~/constants/enums'
 
 config()
 
@@ -20,9 +20,18 @@ interface SeedUserInput {
   email: string
   bio: string
   location: string
+  role?: UserRole
 }
 
 const seedUsers: SeedUserInput[] = [
+  {
+    name: 'Admin',
+    username: 'admin',
+    email: 'admin@example.com',
+    bio: 'Administrator account. Có toàn quyền hệ thống (chưa wire endpoint admin-only).',
+    location: 'Internal',
+    role: UserRole.Admin,
+  },
   {
     name: 'An Nguyen',
     username: 'an_dev',
@@ -87,11 +96,12 @@ async function run() {
         bio: u.bio,
         location: u.location,
         verify: UserVerifyStatus.Verified,
+        role: u.role ?? UserRole.User,
       }),
   )
   await databaseService.user.insertMany(userDocs)
-  const [an, binh, chi] = userDocs
-  console.log(`[seed] Inserted ${userDocs.length} users`)
+  const [, an, binh, chi] = userDocs
+  console.log(`[seed] Inserted ${userDocs.length} users (1 admin + 3 regular)`)
 
   console.log('[seed] Inserting follows (an follows binh + chi; binh follows an)...')
   await databaseService.followers.insertMany([
@@ -151,7 +161,8 @@ async function run() {
   console.log('')
   console.log('Login credentials (password: Password@123)')
   seedUsers.forEach((u) => {
-    console.log(`  - ${u.email}  (@${u.username})`)
+    const tag = u.role === UserRole.Admin ? '  [ADMIN]' : ''
+    console.log(`  - ${u.email}  (@${u.username})${tag}`)
   })
   console.log('')
   console.log(`Users:     ${userDocs.length}`)

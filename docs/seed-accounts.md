@@ -4,15 +4,20 @@ Tài khoản test được tạo sẵn bởi `npm run seed`. Dùng để đăng 
 
 ## Credentials
 
-> **Password (chung cho cả 3 tài khoản):** `Password@123`
+> **Password (chung cho tất cả tài khoản):** `Password@123`
 
-| Email                 | Username          | Vai trò                        |
-| --------------------- | ----------------- | ------------------------------ |
-| `an@example.com`      | `an_dev`          | Frontend engineer              |
-| `binh@example.com`    | `binh_designer`   | Product designer               |
-| `chi@example.com`     | `chi_backend`     | Backend engineer               |
+| Email                 | Username          | Role  | Vai trò                        |
+| --------------------- | ----------------- | ----- | ------------------------------ |
+| `admin@example.com`   | `admin`           | Admin | Administrator account          |
+| `an@example.com`      | `an_dev`          | User  | Frontend engineer              |
+| `binh@example.com`    | `binh_designer`   | User  | Product designer               |
+| `chi@example.com`     | `chi_backend`     | User  | Backend engineer               |
 
 Tất cả đều có `verify = Verified` để bỏ qua bước xác thực email.
+
+`Role` enum (xem `src/constants/enums.ts`): `User = 0`, `Admin = 1`. Hiện chưa có
+endpoint admin-only — field này dùng cho UI badge và làm groundwork cho permission
+trong các iteration sau.
 
 ## Relationships có sẵn
 

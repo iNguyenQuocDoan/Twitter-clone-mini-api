@@ -4,6 +4,11 @@ enum UserVerifyStatus {
   Banned
 }
 
+enum UserRole {
+  User,
+  Admin
+}
+
 enum TokenType {
   AccessToken,
   RefreshToken,
@@ -23,4 +28,4 @@ enum TweetAudience {
   TwitterCircle
 }
 
-export { UserVerifyStatus, TokenType, TweetType, TweetAudience }
+export { UserVerifyStatus, UserRole, TokenType, TweetType, TweetAudience }
