@@ -184,6 +184,31 @@ class TweetServices {
     return enriched
   }
 
+  async getUserTweets(username: string, page: number, limit: number, current_user_id?: string) {
+    const user = await databaseService.user.findOne(
+      { username },
+      { projection: { _id: 1 } },
+    )
+    if (!user) return null
+
+    const match = { user_id: user._id, type: TweetType.Tweet }
+
+    const [tweets, total] = await Promise.all([
+      databaseService.tweets
+        .aggregate([
+          { $match: match },
+          { $sort: { created_at: -1 } },
+          { $skip: (page - 1) * limit },
+          { $limit: limit },
+          ...enrichmentStages(current_user_id),
+        ])
+        .toArray(),
+      databaseService.tweets.countDocuments(match),
+    ])
+
+    return { tweets, total, page, limit, total_pages: Math.ceil(total / limit) }
+  }
+
   async getTimeline(user_id: string, page: number, limit: number) {
     const followed = await databaseService.followers
       .find({ user_id: new ObjectId(user_id) }, { projection: { followed_user_id: 1 } })

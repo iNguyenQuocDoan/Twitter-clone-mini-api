@@ -2,6 +2,7 @@ import { Request, Response } from 'express'
 import { ParamsDictionary } from 'express-serve-static-core'
 
 import userServices from '~/services/users.service'
+import tweetServices from '~/services/tweets.service'
 import { RegisterRequestBody, UpdateMeRequestBody, ChangePasswordRequestBody } from '~/models/requests/User.requests'
 import { USER_MESSAGES } from '~/constants/message'
 import { UserVerifyStatus } from '~/constants/enums'
@@ -111,11 +112,32 @@ const changePasswordController = async (req: Request<ParamsDictionary, any, Chan
 
 const getProfileController = async (req: Request, res: Response) => {
   const { username } = req.params
-  const user = await userServices.getProfile(username)
+  const current_user_id = (req.decoded_authorization as { user_id?: string } | undefined)?.user_id
+  const user = await userServices.getProfile(username, current_user_id)
   if (!user) {
     return res.status(404).json(errorResponse(ERROR_CODE.USER_001, USER_MESSAGES.USER_NOT_FOUND))
   }
   return res.status(200).json(successResponse(user, USER_MESSAGES.GET_PROFILE_SUCCESS))
+}
+
+const getUserTweetsController = async (req: Request, res: Response) => {
+  const { username } = req.params
+  const current_user_id = (req.decoded_authorization as { user_id?: string } | undefined)?.user_id
+  const page = Number(req.query.page) || 1
+  const limit = Math.min(Number(req.query.limit) || 10, 100)
+
+  const result = await tweetServices.getUserTweets(username, page, limit, current_user_id)
+  if (!result) {
+    return res.status(404).json(errorResponse(ERROR_CODE.USER_001, USER_MESSAGES.USER_NOT_FOUND))
+  }
+  const { tweets, total, total_pages } = result
+  // Re-use paginatedResponse shape: { success, data, meta, message }
+  return res.status(200).json({
+    success: true,
+    data: tweets,
+    meta: { page, limit, total, total_pages },
+    message: USER_MESSAGES.GET_TIMELINE_SUCCESS,
+  })
 }
 
 const followController = async (req: Request, res: Response) => {
@@ -148,6 +170,7 @@ export {
   updateMeController,
   changePasswordController,
   getProfileController,
+  getUserTweetsController,
   followController,
   unfollowController
 }

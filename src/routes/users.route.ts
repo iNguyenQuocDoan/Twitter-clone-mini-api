@@ -12,11 +12,13 @@ import {
   updateMeController,
   changePasswordController,
   getProfileController,
+  getUserTweetsController,
   followController,
   unfollowController
 } from '~/controllers/users.controllers'
 import {
   accessTokenValidator,
+  optionalAccessTokenValidator,
   emailVerifyTokenValidator,
   loginValidator,
   refreshTokenValidator,
@@ -469,7 +471,38 @@ usersRouter.put('/change-password', accessTokenValidator, changePasswordValidato
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-usersRouter.get('/:username', wrapRequestHandler(getProfileController))
+usersRouter.get('/:username', optionalAccessTokenValidator, wrapRequestHandler(getProfileController))
+
+/**
+ * @swagger
+ * /users/{username}/tweets:
+ *   get:
+ *     tags:
+ *       - Users
+ *     summary: Get tweets authored by a specific user (paginated)
+ *     parameters:
+ *       - in: path
+ *         name: username
+ *         required: true
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *     responses:
+ *       200:
+ *         description: Tweets list
+ *       404:
+ *         description: User not found
+ */
+usersRouter.get('/:username/tweets', optionalAccessTokenValidator, wrapRequestHandler(getUserTweetsController))
 
 /**
  * @swagger

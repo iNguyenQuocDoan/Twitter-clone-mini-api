@@ -1,3 +1,4 @@
+import { NextFunction, Request, Response } from 'express'
 import { checkSchema } from 'express-validator'
 import { ObjectId } from 'mongodb'
 import { ERROR_CODE } from '~/constants/errorCode'
@@ -197,6 +198,24 @@ const accessTokenValidator = validate(
     ['headers']
   )
 )
+
+/**
+ * Decode Bearer token if present; never throws — anonymous requests pass through.
+ * Use for endpoints whose response can be enriched with per-user state
+ * (is_followed, is_liked, …) but should also serve guests.
+ */
+const optionalAccessTokenValidator = async (req: Request, _res: Response, next: NextFunction) => {
+  const auth = req.headers.authorization
+  if (auth && auth.startsWith('Bearer ')) {
+    const token = auth.slice(7)
+    try {
+      req.decoded_authorization = await verifyToken({ token })
+    } catch {
+      // ignore — treat as anonymous
+    }
+  }
+  next()
+}
 
 const refreshTokenValidator = validate(
   checkSchema(
@@ -540,6 +559,7 @@ export {
   loginValidator,
   registerValidator,
   accessTokenValidator,
+  optionalAccessTokenValidator,
   refreshTokenValidator,
   emailVerifyTokenValidator,
   forgotPasswordValidator,

@@ -5,7 +5,7 @@ import databaseService from './database.services'
 import { RegisterRequestBody, UpdateMeRequestBody } from '~/models/requests/User.requests'
 import { hashPassword } from '~/utils/crypto'
 import { signToken } from '~/utils/jwt'
-import { TokenType, UserVerifyStatus } from '~/constants/enums'
+import { TokenType, TweetType, UserVerifyStatus } from '~/constants/enums'
 import { RefreshToken } from '~/models/RefreshToken'
 import Follower from '~/models/schemas/Follower.schema'
 import { ObjectId } from 'mongodb'
@@ -206,11 +206,99 @@ class UserServices {
     )
   }
 
-  async getProfile(username: string) {
-    return databaseService.user.findOne(
-      { username },
-      { projection: { password: 0, email_verify_token: 0, forgot_password_token: 0, created_at: 0, updated_at: 0 } }
-    )
+  async getProfile(username: string, current_user_id?: string) {
+    const currentUserObjectId = current_user_id ? new ObjectId(current_user_id) : null
+
+    const pipeline: any[] = [
+      { $match: { username } },
+      {
+        $project: {
+          password: 0,
+          email_verify_token: 0,
+          forgot_password_token: 0,
+        },
+      },
+      // followers (people who follow this user)
+      {
+        $lookup: {
+          from: 'followers',
+          let: { uid: '$_id' },
+          pipeline: [
+            { $match: { $expr: { $eq: ['$followed_user_id', '$$uid'] } } },
+            { $count: 'count' },
+          ],
+          as: '__followers',
+        },
+      },
+      // following (people this user follows)
+      {
+        $lookup: {
+          from: 'followers',
+          let: { uid: '$_id' },
+          pipeline: [
+            { $match: { $expr: { $eq: ['$user_id', '$$uid'] } } },
+            { $count: 'count' },
+          ],
+          as: '__following',
+        },
+      },
+      // tweet count (type=Tweet only)
+      {
+        $lookup: {
+          from: 'tweets',
+          let: { uid: '$_id' },
+          pipeline: [
+            {
+              $match: {
+                $expr: { $eq: ['$user_id', '$$uid'] },
+                type: TweetType.Tweet,
+              },
+            },
+            { $count: 'count' },
+          ],
+          as: '__tweets',
+        },
+      },
+      {
+        $addFields: {
+          followers_count: { $ifNull: [{ $arrayElemAt: ['$__followers.count', 0] }, 0] },
+          following_count: { $ifNull: [{ $arrayElemAt: ['$__following.count', 0] }, 0] },
+          tweets_count: { $ifNull: [{ $arrayElemAt: ['$__tweets.count', 0] }, 0] },
+        },
+      },
+      { $project: { __followers: 0, __following: 0, __tweets: 0 } },
+      ...(currentUserObjectId
+        ? [
+            {
+              $lookup: {
+                from: 'followers',
+                let: { uid: '$_id' },
+                pipeline: [
+                  {
+                    $match: {
+                      $expr: {
+                        $and: [
+                          { $eq: ['$user_id', currentUserObjectId] },
+                          { $eq: ['$followed_user_id', '$$uid'] },
+                        ],
+                      },
+                    },
+                  },
+                  { $limit: 1 },
+                ],
+                as: '__userFollow',
+              },
+            },
+            {
+              $addFields: { is_followed: { $gt: [{ $size: '$__userFollow' }, 0] } },
+            },
+            { $project: { __userFollow: 0 } },
+          ]
+        : [{ $addFields: { is_followed: false } }]),
+    ]
+
+    const [profile] = await databaseService.user.aggregate(pipeline).toArray()
+    return profile || null
   }
 
   async follow(user_id: string, followed_user_id: string) {
