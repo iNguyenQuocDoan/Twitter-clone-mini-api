@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { bookmarkTweetController, unbookmarkTweetController } from '~/controllers/bookmarks.controllers'
+import { bookmarkTweetController, unbookmarkTweetController, listBookmarksController } from '~/controllers/bookmarks.controllers'
 import { tweetIdBodyValidator, tweetIdParamValidator } from '~/middleware/interactions.middlewares'
 import { accessTokenValidator } from '~/middleware/users.middlewares'
 import { wrapRequestHandler } from '~/utils/handlers'
@@ -54,6 +54,28 @@ const bookmarksRouter = Router()
  *               $ref: '#/components/schemas/ErrorResponse'
  */
 bookmarksRouter.post('/', accessTokenValidator, tweetIdBodyValidator, wrapRequestHandler(bookmarkTweetController))
+
+/**
+ * @swagger
+ * /bookmarks:
+ *   get:
+ *     tags:
+ *       - Bookmarks
+ *     summary: List current user's bookmarked tweets (paginated, enriched)
+ *     security:
+ *       - BearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema: { type: integer, default: 1 }
+ *       - in: query
+ *         name: limit
+ *         schema: { type: integer, default: 10 }
+ *     responses:
+ *       200:
+ *         description: Bookmark list
+ */
+bookmarksRouter.get('/', accessTokenValidator, wrapRequestHandler(listBookmarksController))
 
 /**
  * @swagger
