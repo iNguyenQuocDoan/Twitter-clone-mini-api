@@ -6,6 +6,8 @@ import Follower from '~/models/schemas/Follower.schema'
 import Tweet from '~/models/schemas/Tweet.schema'
 import Like from '~/models/schemas/Like.schema'
 import Bookmark from '~/models/schemas/Bookmark.schema'
+import Conversation from '~/models/schemas/Conversation.schema'
+import Message from '~/models/schemas/Message.schema'
 
 // import cái này vào để đọc được mây cái biến ở env
 config()
@@ -59,6 +61,14 @@ class DatabaseService {
 
   get bookmarks(): Collection<Bookmark> {
     return this.db.collection(process.env.BOOKMARK_COLLECTION as string)
+  }
+
+  get conversations(): Collection<Conversation> {
+    return this.db.collection(process.env.CONVERSATION_COLLECTION as string)
+  }
+
+  get messages(): Collection<Message> {
+    return this.db.collection(process.env.MESSAGE_COLLECTION as string)
   }
 }
 

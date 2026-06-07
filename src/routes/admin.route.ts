@@ -4,6 +4,7 @@ import {
   listUsersController,
   updateUserController,
 } from '~/controllers/admin.controllers'
+import { adminListAllController } from '~/controllers/messages.controllers'
 import { accessTokenValidator, requireAdmin } from '~/middleware/users.middlewares'
 import { wrapRequestHandler } from '~/utils/handlers'
 
@@ -73,5 +74,15 @@ adminRouter.get('/users', wrapRequestHandler(listUsersController))
  *       404: { description: User not found }
  */
 adminRouter.patch('/users/:id', wrapRequestHandler(updateUserController))
+
+/**
+ * @swagger
+ * /admin/conversations:
+ *   get:
+ *     tags: [Admin]
+ *     summary: List ALL conversations across users (read-only moderation view)
+ *     security: [{ BearerAuth: [] }]
+ */
+adminRouter.get('/conversations', wrapRequestHandler(adminListAllController))
 
 export default adminRouter
