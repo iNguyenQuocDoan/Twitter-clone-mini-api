@@ -40,16 +40,35 @@ chi  → no follows
 
 ## Conversations + Messages có sẵn
 
-3 cuộc trò chuyện DM, **16 tin nhắn** tổng cộng. Mỗi tin nhắn `read_by` chỉ chứa sender — peer **chưa đọc** → `unread_count` của peer luôn > 0 khi mở `/messages`.
+**5 cuộc trò chuyện DM, 30 tin nhắn**, mix timestamps từ vài phút tới 5 ngày trước. **Read receipts đa dạng**: hầu hết đã read, một số tin gần đây để `unread` để badge hiển thị.
 
 | Conversation               | # tin | Last message                                              |
 | -------------------------- | ----- | --------------------------------------------------------- |
-| `an_dev ↔ binh_designer`   | 7     | "8%, tinted cool xíu. Nhìn vừa đủ."                       |
-| `an_dev ↔ chi_backend`     | 5     | "Sẽ paste trong Notion. Reply route là POST /tweets/…"    |
-| `binh_designer ↔ chi_backend` | 4  | "Ok 👌"                                                    |
+| `an_dev ↔ binh_designer`   | 11    | "Send code cho t với, t copy cho project lab" *(2 unread cho an)* |
+| `an_dev ↔ chi_backend`     | 8     | "Test xong nhớ note lại trong README" *(1 unread cho an)* |
+| `admin ↔ an_dev`           | 4     | "Đã note. Em đang gặp bug 'Xem như user'…" *(1 unread cho admin)* |
+| `admin ↔ binh_designer`    | 3     | "Got it, thanks 👍" *(read sạch)*                          |
+| `binh_designer ↔ chi_backend` | 4  | "Ok 👌" *(read sạch)*                                      |
 
-→ Login `admin` → vào `/admin/messages`: thấy đủ 3 conv, **bấm vào đọc được toàn bộ nội dung** (16 tin).
-→ Login `an_dev` → vào `/messages`: thấy 2 conv (với binh + chi), unread badges hiển thị.
+→ Login `admin` → vào `/admin/messages`: thấy đủ **5 conv** với member-pair label, **bấm vào đọc được nội dung** từng conv.
+→ Admin có riêng `/messages` cũng thấy 2 conv của mình (với an + binh).
+→ Login `an_dev` → `/messages`: 3 conv, badge **2** + **1** + **0** ở các row tương ứng.
+
+## Realtime test
+
+Hai cách verify socket.io realtime hoạt động:
+
+```bash
+# CLI test (Node) — chạy 3 socket client mô phỏng an, binh, admin
+npm run socket-test
+# Kỳ vọng: 5 PASS · 0 FAIL
+```
+
+Hoặc test trên browser:
+1. Tab 1 (admin) → `/admin/messages` — mở conv `an ↔ binh`
+2. Tab 2 (incognito, an) → `/messages` — chọn conv với binh
+3. Tab 3 (incognito khác, binh) → `/messages` — chọn conv với an
+4. Gõ tin ở tab 2 → Enter — tab 3 thấy ngay, tab 1 cũng cập nhật ngay
 
 ## Commands
 

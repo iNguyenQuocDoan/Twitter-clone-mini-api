@@ -9,6 +9,7 @@
     "start": "node dist/index.js",
     "seed": "tsx ./src/scripts/seed.ts",
     "smoke": "tsx ./src/scripts/smoke-test.ts",
+    "socket-test": "tsx ./src/scripts/socket-test.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -21,6 +22,7 @@
     "@types/swagger-ui-express": "^4.1.8",
     "nodemon": "^3.1.10",
     "rimraf": "^6.0.1",
+    "socket.io-client": "^4.8.3",
     "tsc-alias": "^1.8.16",
     "tsx": "^4.20.4",
     "typescript": "^5.9.2"

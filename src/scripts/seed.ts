@@ -114,7 +114,7 @@ async function run() {
       }),
   )
   await databaseService.user.insertMany(userDocs)
-  const [, an, binh, chi] = userDocs
+  const [admin, an, binh, chi] = userDocs
   console.log(`[seed] Inserted ${userDocs.length} users (1 admin + 3 regular)`)
 
   console.log('[seed] Inserting follows (an follows binh + chi; binh follows an)...')
@@ -177,49 +177,101 @@ async function run() {
   const sortIds = (a: ObjectId, b: ObjectId): [ObjectId, ObjectId] =>
     a.toHexString() < b.toHexString() ? [a, b] : [b, a]
 
+  const day = 24 * 60 * minute
+
+  /**
+   * Each message lists who has read it. By default the sender already has,
+   * peer may or may not. `unread: true` on a peer message means it stays
+   * unread for the recipient (so unread badges show variety).
+   */
+  interface SeededMsg {
+    sender: ObjectId
+    content: string
+    /** Minutes ago. Older = larger number. */
+    ageMin: number
+    /** If true, peer has NOT read this message. Defaults to false (peer read). */
+    unread?: boolean
+  }
   interface SeededConv {
     members: [ObjectId, ObjectId]
-    messages: Array<{ sender: ObjectId; content: string; ageMin: number }>
+    messages: SeededMsg[]
   }
+
   const conversationSpecs: SeededConv[] = [
+    // ── 1. an ↔ binh — long thread, 2 recent unread for an
     {
       members: sortIds(an._id!, binh._id!),
       messages: [
-        { sender: an._id!, content: 'Bin ơi, tối nay rảnh không? Đi cà phê nhé', ageMin: 90 },
-        { sender: binh._id!, content: 'Rảnh đó! Quán cũ chỗ Pasteur nhé?', ageMin: 88 },
-        { sender: an._id!, content: 'Ok 7h tối luôn', ageMin: 87 },
-        { sender: binh._id!, content: 'Deal 👍', ageMin: 86 },
-        { sender: an._id!, content: 'Mình vừa làm xong cái dark mode kiểu Linear, hôm nay show bạn xem', ageMin: 12 },
-        { sender: binh._id!, content: 'Hay đó! Border alpha bao nhiêu thế?', ageMin: 10 },
+        { sender: an._id!, content: 'Bin ơi, tối nay rảnh không? Đi cà phê nhé', ageMin: 3 * day + 90 },
+        { sender: binh._id!, content: 'Rảnh đó! Quán cũ chỗ Pasteur nhé?', ageMin: 3 * day + 88 },
+        { sender: an._id!, content: 'Ok 7h tối luôn', ageMin: 3 * day + 87 },
+        { sender: binh._id!, content: 'Deal 👍', ageMin: 3 * day + 86 },
+        { sender: binh._id!, content: 'Sáng nay nghe nói team mình có ngân sách cho design system. Hype quá', ageMin: day + 200 },
+        { sender: an._id!, content: 'Thật á? Khi nào tao có thể tham gia early?', ageMin: day + 180 },
+        { sender: binh._id!, content: 'Để hỏi sếp xong báo lại', ageMin: day + 170 },
+        { sender: an._id!, content: 'Vừa làm xong cái dark mode kiểu Linear, hôm nay show bạn xem', ageMin: 12 },
+        { sender: binh._id!, content: 'Hay đó! Border alpha bao nhiêu thế?', ageMin: 10, unread: true },
         { sender: an._id!, content: '8%, tinted cool xíu. Nhìn vừa đủ.', ageMin: 8 },
+        { sender: binh._id!, content: 'Send code cho t với, t copy cho project lab', ageMin: 4, unread: true },
       ],
     },
+
+    // ── 2. an ↔ chi — work thread, 1 unread for an
     {
       members: sortIds(an._id!, chi._id!),
       messages: [
-        { sender: chi._id!, content: 'An, /tweets/timeline đang trả về data field mới rồi nhé, FE update lại schema chưa?', ageMin: 60 },
-        { sender: an._id!, content: 'Có rồi, infinite query đã đổi sang lastPage.meta.page', ageMin: 58 },
-        { sender: chi._id!, content: 'Ok. Mai mình thêm endpoint comments nữa', ageMin: 55 },
-        { sender: an._id!, content: 'Gửi cho mình API contract trước khi vào FE nha', ageMin: 50 },
-        { sender: chi._id!, content: 'Sẽ paste trong Notion. Reply route là POST /tweets/:id/replies', ageMin: 45 },
+        { sender: chi._id!, content: 'An, /tweets/timeline đang trả về data field mới rồi nhé, FE update lại schema chưa?', ageMin: 2 * day + 60 },
+        { sender: an._id!, content: 'Có rồi, infinite query đã đổi sang lastPage.meta.page', ageMin: 2 * day + 58 },
+        { sender: chi._id!, content: 'Ok. Mai mình thêm endpoint comments nữa', ageMin: 2 * day + 55 },
+        { sender: an._id!, content: 'Gửi cho mình API contract trước khi vào FE nha', ageMin: 2 * day + 50 },
+        { sender: chi._id!, content: 'Sẽ paste trong Notion. Reply route là POST /tweets/:id/replies', ageMin: 2 * day + 45 },
+        { sender: an._id!, content: 'Btw conv detail của admin chạy chưa?', ageMin: 6 * 60 },
+        { sender: chi._id!, content: 'Chạy rồi, /admin/conversations/:id/messages bypass member check', ageMin: 5 * 60 + 50 },
+        { sender: chi._id!, content: 'Test xong nhớ note lại trong README', ageMin: 30, unread: true },
       ],
     },
+
+    // ── 3. binh ↔ chi — short, fully read
     {
       members: sortIds(binh._id!, chi._id!),
       messages: [
-        { sender: binh._id!, content: 'Chi ơi mai design review nhớ join nhé', ageMin: 180 },
-        { sender: chi._id!, content: 'Mấy giờ vậy?', ageMin: 178 },
-        { sender: binh._id!, content: '10h sáng, 30 phút thôi', ageMin: 175 },
-        { sender: chi._id!, content: 'Ok 👌', ageMin: 174 },
+        { sender: binh._id!, content: 'Chi ơi mai design review nhớ join nhé', ageMin: 5 * day },
+        { sender: chi._id!, content: 'Mấy giờ vậy?', ageMin: 5 * day - 2 },
+        { sender: binh._id!, content: '10h sáng, 30 phút thôi', ageMin: 5 * day - 5 },
+        { sender: chi._id!, content: 'Ok 👌', ageMin: 5 * day - 10 },
+      ],
+    },
+
+    // ── 4. admin ↔ an — system notice, admin has unread
+    {
+      members: sortIds(admin._id!, an._id!),
+      messages: [
+        { sender: admin._id!, content: 'Hi An, thấy bạn build FE tốt. Có rảnh giúp QA admin panel không?', ageMin: 8 * 60 },
+        { sender: an._id!, content: 'Có rảnh ạ! Em test thử rồi feedback sau', ageMin: 7 * 60 + 45 },
+        { sender: admin._id!, content: 'Cảm ơn. Note vào Linear ticket ADMIN-12 nhé', ageMin: 7 * 60 + 30 },
+        { sender: an._id!, content: 'Đã note. Em đang gặp bug "Xem như user" reload mất banner, sẽ ping lại', ageMin: 45, unread: true },
+      ],
+    },
+
+    // ── 5. admin ↔ binh — quick ping, fully read
+    {
+      members: sortIds(admin._id!, binh._id!),
+      messages: [
+        { sender: admin._id!, content: 'Binh, design hệ thống profile mới có spec chưa?', ageMin: day + 120 },
+        { sender: binh._id!, content: 'Có rồi, link Figma đã share trong Slack #design', ageMin: day + 110 },
+        { sender: admin._id!, content: 'Got it, thanks 👍', ageMin: day + 100 },
       ],
     },
   ]
 
   let totalMessages = 0
+  let totalUnread = 0
   for (const spec of conversationSpecs) {
     const convId = new ObjectId()
     const sortedMsgs = [...spec.messages].sort((a, b) => b.ageMin - a.ageMin) // oldest first
     const last = sortedMsgs[sortedMsgs.length - 1]
+    const peerOf = (sender: ObjectId) =>
+      spec.members.find((m) => !m.equals(sender)) as ObjectId
 
     const conv = new Conversation({
       _id: convId,
@@ -232,18 +284,21 @@ async function run() {
     })
     await databaseService.conversations.insertOne(conv)
 
-    const messageDocs = sortedMsgs.map(
-      (m) =>
-        new Message({
-          _id: new ObjectId(),
-          conversation_id: convId,
-          sender_id: m.sender,
-          content: m.content,
-          // Sender always has read their own message; peer hasn't read yet
-          read_by: [m.sender],
-          created_at: new Date(now - m.ageMin * minute),
-        }),
-    )
+    const messageDocs = sortedMsgs.map((m) => {
+      const peer = peerOf(m.sender)
+      const readBy = [m.sender]
+      // If not explicitly unread, peer has also read it
+      if (!m.unread) readBy.push(peer)
+      else totalUnread += 1
+      return new Message({
+        _id: new ObjectId(),
+        conversation_id: convId,
+        sender_id: m.sender,
+        content: m.content,
+        read_by: readBy,
+        created_at: new Date(now - m.ageMin * minute),
+      })
+    })
     await databaseService.messages.insertMany(messageDocs)
     totalMessages += messageDocs.length
   }
@@ -263,7 +318,7 @@ async function run() {
   console.log(`Likes:         2`)
   console.log(`Bookmarks:     1`)
   console.log(`Conversations: ${conversationSpecs.length}`)
-  console.log(`Messages:      ${totalMessages}`)
+  console.log(`Messages:      ${totalMessages}  (${totalUnread} unread for peers)`)
 }
 
 run()
