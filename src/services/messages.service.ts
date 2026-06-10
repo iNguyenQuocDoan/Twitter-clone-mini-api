@@ -174,6 +174,39 @@ class MessagesServices {
     return { ok: true as const }
   }
 
+  /** Admin-only: read any conversation's messages, no member check. */
+  async adminListMessages(conversation_id: string, page: number, limit: number) {
+    const cid = new ObjectId(conversation_id)
+    const conv = await databaseService.conversations.findOne({ _id: cid })
+    if (!conv) return null
+
+    // Inline member user lookup for richer display in admin view
+    const memberUsers = await databaseService.user
+      .find(
+        { _id: { $in: conv.members } },
+        { projection: { _id: 1, name: 1, username: 1, avatar: 1 } },
+      )
+      .toArray()
+
+    const [items, total] = await Promise.all([
+      databaseService.messages
+        .find({ conversation_id: cid })
+        .sort({ created_at: -1 })
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .toArray(),
+      databaseService.messages.countDocuments({ conversation_id: cid }),
+    ])
+    return {
+      conversation: { ...conv, member_users: memberUsers },
+      items: items.reverse(),
+      total,
+      page,
+      limit,
+      total_pages: Math.ceil(total / limit),
+    }
+  }
+
   /** Admin-only: list all conversations across users with member details. */
   async adminListAllConversations(page: number, limit: number) {
     const pipeline: any[] = [

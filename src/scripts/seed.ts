@@ -7,6 +7,8 @@ import Tweet from '~/models/schemas/Tweet.schema'
 import Follower from '~/models/schemas/Follower.schema'
 import Like from '~/models/schemas/Like.schema'
 import Bookmark from '~/models/schemas/Bookmark.schema'
+import Conversation from '~/models/schemas/Conversation.schema'
+import Message from '~/models/schemas/Message.schema'
 import { hashPassword } from '~/utils/crypto'
 import { TweetAudience, TweetType, UserRole, UserVerifyStatus } from '~/constants/enums'
 
@@ -68,6 +70,16 @@ async function run() {
     const tweetCursor = await databaseService.tweets.find({ user_id: { $in: existingIds } }).toArray()
     const tweetIds = tweetCursor.map((t) => t._id)
 
+    // Find conversations that involve any seeded user, then remove their messages too
+    const seededConvs = await databaseService.conversations
+      .find({ members: { $in: existingIds } })
+      .toArray()
+    const seededConvIds = seededConvs.map((c) => c._id!)
+    if (seededConvIds.length > 0) {
+      await databaseService.messages.deleteMany({ conversation_id: { $in: seededConvIds } })
+      await databaseService.conversations.deleteMany({ _id: { $in: seededConvIds } })
+    }
+
     await databaseService.likes.deleteMany({
       $or: [{ user_id: { $in: existingIds } }, { tweet_id: { $in: tweetIds } }],
     })
@@ -80,7 +92,9 @@ async function run() {
     })
     await databaseService.refreshTokens.deleteMany({ user_id: { $in: existingIds } })
     await databaseService.user.deleteMany({ _id: { $in: existingIds } })
-    console.log(`[seed] Cleared ${existingIds.length} existing seed users + their data`)
+    console.log(
+      `[seed] Cleared ${existingIds.length} seed users + ${seededConvIds.length} conversations`,
+    )
   }
 
   console.log('[seed] Inserting users...')
@@ -156,6 +170,84 @@ async function run() {
     )
   }
 
+  console.log('[seed] Inserting conversations + messages...')
+  // Member arrays MUST be sorted ascending by hex string — same rule as
+  // messages.service.ts:sortMembers. Without that, `getOrCreateDM` would
+  // create duplicate conversations on next use.
+  const sortIds = (a: ObjectId, b: ObjectId): [ObjectId, ObjectId] =>
+    a.toHexString() < b.toHexString() ? [a, b] : [b, a]
+
+  interface SeededConv {
+    members: [ObjectId, ObjectId]
+    messages: Array<{ sender: ObjectId; content: string; ageMin: number }>
+  }
+  const conversationSpecs: SeededConv[] = [
+    {
+      members: sortIds(an._id!, binh._id!),
+      messages: [
+        { sender: an._id!, content: 'Bin ơi, tối nay rảnh không? Đi cà phê nhé', ageMin: 90 },
+        { sender: binh._id!, content: 'Rảnh đó! Quán cũ chỗ Pasteur nhé?', ageMin: 88 },
+        { sender: an._id!, content: 'Ok 7h tối luôn', ageMin: 87 },
+        { sender: binh._id!, content: 'Deal 👍', ageMin: 86 },
+        { sender: an._id!, content: 'Mình vừa làm xong cái dark mode kiểu Linear, hôm nay show bạn xem', ageMin: 12 },
+        { sender: binh._id!, content: 'Hay đó! Border alpha bao nhiêu thế?', ageMin: 10 },
+        { sender: an._id!, content: '8%, tinted cool xíu. Nhìn vừa đủ.', ageMin: 8 },
+      ],
+    },
+    {
+      members: sortIds(an._id!, chi._id!),
+      messages: [
+        { sender: chi._id!, content: 'An, /tweets/timeline đang trả về data field mới rồi nhé, FE update lại schema chưa?', ageMin: 60 },
+        { sender: an._id!, content: 'Có rồi, infinite query đã đổi sang lastPage.meta.page', ageMin: 58 },
+        { sender: chi._id!, content: 'Ok. Mai mình thêm endpoint comments nữa', ageMin: 55 },
+        { sender: an._id!, content: 'Gửi cho mình API contract trước khi vào FE nha', ageMin: 50 },
+        { sender: chi._id!, content: 'Sẽ paste trong Notion. Reply route là POST /tweets/:id/replies', ageMin: 45 },
+      ],
+    },
+    {
+      members: sortIds(binh._id!, chi._id!),
+      messages: [
+        { sender: binh._id!, content: 'Chi ơi mai design review nhớ join nhé', ageMin: 180 },
+        { sender: chi._id!, content: 'Mấy giờ vậy?', ageMin: 178 },
+        { sender: binh._id!, content: '10h sáng, 30 phút thôi', ageMin: 175 },
+        { sender: chi._id!, content: 'Ok 👌', ageMin: 174 },
+      ],
+    },
+  ]
+
+  let totalMessages = 0
+  for (const spec of conversationSpecs) {
+    const convId = new ObjectId()
+    const sortedMsgs = [...spec.messages].sort((a, b) => b.ageMin - a.ageMin) // oldest first
+    const last = sortedMsgs[sortedMsgs.length - 1]
+
+    const conv = new Conversation({
+      _id: convId,
+      members: spec.members,
+      last_message: last.content,
+      last_sender_id: last.sender,
+      last_message_at: new Date(now - last.ageMin * minute),
+      created_at: new Date(now - sortedMsgs[0].ageMin * minute),
+      updated_at: new Date(now - last.ageMin * minute),
+    })
+    await databaseService.conversations.insertOne(conv)
+
+    const messageDocs = sortedMsgs.map(
+      (m) =>
+        new Message({
+          _id: new ObjectId(),
+          conversation_id: convId,
+          sender_id: m.sender,
+          content: m.content,
+          // Sender always has read their own message; peer hasn't read yet
+          read_by: [m.sender],
+          created_at: new Date(now - m.ageMin * minute),
+        }),
+    )
+    await databaseService.messages.insertMany(messageDocs)
+    totalMessages += messageDocs.length
+  }
+
   console.log('')
   console.log('=== SEED DONE ===')
   console.log('')
@@ -165,11 +257,13 @@ async function run() {
     console.log(`  - ${u.email}  (@${u.username})${tag}`)
   })
   console.log('')
-  console.log(`Users:     ${userDocs.length}`)
-  console.log(`Tweets:    ${tweetDocs.length}`)
-  console.log(`Follows:   3`)
-  console.log(`Likes:     2`)
-  console.log(`Bookmarks: 1`)
+  console.log(`Users:         ${userDocs.length}`)
+  console.log(`Tweets:        ${tweetDocs.length}`)
+  console.log(`Follows:       3`)
+  console.log(`Likes:         2`)
+  console.log(`Bookmarks:     1`)
+  console.log(`Conversations: ${conversationSpecs.length}`)
+  console.log(`Messages:      ${totalMessages}`)
 }
 
 run()

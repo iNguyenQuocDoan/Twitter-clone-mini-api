@@ -69,13 +69,13 @@ const sendMessageController = async (req: Request, res: Response) => {
   }
 
   const result = await messagesServices.sendMessage(me, id, content)
-  if ('error' in result) {
-    const map = {
+  if ('error' in result && result.error) {
+    const map: Record<string, [number, string]> = {
       not_found: [HTTP_STATUS.NOT_FOUND, 'Conversation not found'],
       forbidden: [HTTP_STATUS.FORBIDDEN, 'Not a member'],
       empty: [HTTP_STATUS.BAD_REQUEST, 'Nội dung trống'],
       too_long: [HTTP_STATUS.BAD_REQUEST, 'Tối đa 2000 ký tự'],
-    } as const
+    }
     const [status, message] = map[result.error]
     return res.status(status).json(errorResponse(ERROR_CODE.SYS_002, message))
   }
@@ -112,6 +112,31 @@ const adminListAllController = async (req: Request, res: Response) => {
     .json(paginatedResponse(items, { page, limit, total, total_pages }, 'OK'))
 }
 
+/** Admin: GET /admin/conversations/:id/messages — read any conversation */
+const adminListMessagesController = async (req: Request, res: Response) => {
+  const { id } = req.params
+  const page = Number(req.query.page) || 1
+  const limit = Math.min(Number(req.query.limit) || 50, 200)
+  const result = await messagesServices.adminListMessages(id, page, limit)
+  if (!result) {
+    return res
+      .status(HTTP_STATUS.NOT_FOUND)
+      .json(errorResponse('MSG_001', 'Conversation not found'))
+  }
+  return res.status(HTTP_STATUS.OK).json({
+    success: true,
+    data: result.items,
+    meta: {
+      page,
+      limit,
+      total: result.total,
+      total_pages: result.total_pages,
+      conversation: result.conversation,
+    },
+    message: 'OK',
+  })
+}
+
 export {
   createOrGetDMController,
   listConversationsController,
@@ -119,4 +144,5 @@ export {
   sendMessageController,
   markReadController,
   adminListAllController,
+  adminListMessagesController,
 }

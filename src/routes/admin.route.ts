@@ -4,7 +4,7 @@ import {
   listUsersController,
   updateUserController,
 } from '~/controllers/admin.controllers'
-import { adminListAllController } from '~/controllers/messages.controllers'
+import { adminListAllController, adminListMessagesController } from '~/controllers/messages.controllers'
 import { accessTokenValidator, requireAdmin } from '~/middleware/users.middlewares'
 import { wrapRequestHandler } from '~/utils/handlers'
 
@@ -84,5 +84,15 @@ adminRouter.patch('/users/:id', wrapRequestHandler(updateUserController))
  *     security: [{ BearerAuth: [] }]
  */
 adminRouter.get('/conversations', wrapRequestHandler(adminListAllController))
+
+/**
+ * @swagger
+ * /admin/conversations/{id}/messages:
+ *   get:
+ *     tags: [Admin]
+ *     summary: Read any conversation's messages (admin override — bypasses member check)
+ *     security: [{ BearerAuth: [] }]
+ */
+adminRouter.get('/conversations/:id/messages', wrapRequestHandler(adminListMessagesController))
 
 export default adminRouter

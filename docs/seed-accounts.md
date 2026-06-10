@@ -38,6 +38,19 @@ chi  → no follows
 - `an` đã like tweet đầu của `binh` và `chi`
 - `an` đã bookmark tweet đầu của `chi`
 
+## Conversations + Messages có sẵn
+
+3 cuộc trò chuyện DM, **16 tin nhắn** tổng cộng. Mỗi tin nhắn `read_by` chỉ chứa sender — peer **chưa đọc** → `unread_count` của peer luôn > 0 khi mở `/messages`.
+
+| Conversation               | # tin | Last message                                              |
+| -------------------------- | ----- | --------------------------------------------------------- |
+| `an_dev ↔ binh_designer`   | 7     | "8%, tinted cool xíu. Nhìn vừa đủ."                       |
+| `an_dev ↔ chi_backend`     | 5     | "Sẽ paste trong Notion. Reply route là POST /tweets/…"    |
+| `binh_designer ↔ chi_backend` | 4  | "Ok 👌"                                                    |
+
+→ Login `admin` → vào `/admin/messages`: thấy đủ 3 conv, **bấm vào đọc được toàn bộ nội dung** (16 tin).
+→ Login `an_dev` → vào `/messages`: thấy 2 conv (với binh + chi), unread badges hiển thị.
+
 ## Commands
 
 ```bash
@@ -68,4 +81,12 @@ npm run seed
 1. Mở `http://localhost:3000`
 2. Bấm **Đăng nhập** → dùng `an@example.com` / `Password@123`
 3. `/home` phải thấy 6 tweet (của binh + chi)
-4. `/debug` → bấm "Chạy tất cả test" → tất cả 11 row chuyển sang ✅
+4. `/messages` → thấy 2 conversation với badge unread
+5. `/debug` → bấm "Chạy tất cả test" → tất cả 11 row chuyển sang ✅
+
+### Test realtime messaging
+
+1. Tab 1: login `an_dev` → `/messages` → chọn conv với binh
+2. Tab 2 (incognito): login `binh_designer` → `/messages` → chọn conv với an
+3. Gõ tin ở tab 1 và bấm Enter → tab 2 thấy tin ngay (qua Socket.IO)
+4. Tab 3: login `admin` → `/admin/messages` → tin đó xuất hiện ngay trong `count`, click vào conv để đọc nội dung
